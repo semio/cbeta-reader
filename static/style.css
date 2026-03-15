@@ -1,0 +1,234 @@
+/* CBETA Reader — clean reading styles */
+
+:root {
+    --bg: #faf8f5;
+    --fg: #2c2c2c;
+    --fg-secondary: #666;
+    --accent: #8b572a;
+    --border: #e0d8cf;
+    --font-body: "Noto Serif CJK TC", "Source Han Serif TC", "AR PL UMing TW", serif;
+    --font-size: 20px;
+    --line-height: 1.9;
+    --content-width: 48rem;
+}
+
+[data-theme="dark"] {
+    --bg: #1a1a1a;
+    --fg: #d4d0c8;
+    --fg-secondary: #999;
+    --accent: #c4956a;
+    --border: #333;
+}
+
+[data-theme="sepia"] {
+    --bg: #f4ecd8;
+    --fg: #3e3328;
+    --fg-secondary: #6b5d4f;
+    --accent: #8b572a;
+    --border: #d4c9b0;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: var(--font-body);
+    font-size: var(--font-size);
+    line-height: var(--line-height);
+    color: var(--fg);
+    background: var(--bg);
+    -webkit-font-smoothing: antialiased;
+}
+
+/* --- Settings bar --- */
+.settings-bar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.4rem 1rem;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+    flex-wrap: wrap;
+}
+
+.settings-bar label {
+    color: var(--fg-secondary);
+    font-family: sans-serif;
+}
+
+.settings-bar select,
+.settings-bar input[type="range"] {
+    font-size: 13px;
+    padding: 2px 4px;
+}
+
+.settings-bar .spacer { flex: 1; }
+
+/* --- Index / catalog --- */
+.catalog {
+    max-width: var(--content-width);
+    margin: 2rem auto;
+    padding: 0 1.5rem;
+}
+
+.catalog h1 {
+    font-size: 1.6rem;
+    margin-bottom: 1.5rem;
+    color: var(--accent);
+}
+
+.catalog details {
+    margin-bottom: 0.3rem;
+}
+
+.catalog summary {
+    cursor: pointer;
+    padding: 0.3rem 0;
+    font-weight: 600;
+    color: var(--fg);
+    list-style: none;
+}
+
+.catalog summary::before {
+    content: "▸ ";
+    color: var(--fg-secondary);
+}
+
+.catalog details[open] > summary::before {
+    content: "▾ ";
+}
+
+.catalog ul {
+    list-style: none;
+    padding-left: 1.2rem;
+}
+
+.catalog li {
+    padding: 0.15rem 0;
+}
+
+.catalog a {
+    color: var(--fg);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+}
+
+.catalog a:hover {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+}
+
+/* --- Reader --- */
+.reader {
+    max-width: var(--content-width);
+    margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
+}
+
+.reader-header {
+    text-align: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.reader-header h1 {
+    font-size: 1.8rem;
+    margin-bottom: 0.3rem;
+}
+
+.reader-header .author {
+    color: var(--fg-secondary);
+    font-size: 0.95rem;
+}
+
+.body-text {
+    text-indent: 2em;
+    margin-bottom: 0.5em;
+    text-align: justify;
+}
+
+h2.juan {
+    text-align: center;
+    font-size: 1.3rem;
+    margin: 2rem 0 1.5rem;
+    color: var(--accent);
+}
+
+h3 {
+    font-size: 1.15rem;
+    margin: 1.5rem 0 0.8rem;
+    color: var(--accent);
+}
+
+.byline {
+    text-align: center;
+    color: var(--fg-secondary);
+    margin-bottom: 1rem;
+}
+
+.verse {
+    margin: 1em 0;
+    padding-left: 2em;
+}
+
+.verse-line {
+    text-indent: 0;
+    margin-bottom: 0;
+}
+
+/* --- Navigation --- */
+.juan-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 0;
+    margin-top: 2rem;
+    border-top: 1px solid var(--border);
+    font-family: sans-serif;
+    font-size: 0.9rem;
+}
+
+.juan-nav a {
+    color: var(--accent);
+    text-decoration: none;
+    padding: 0.4rem 0.8rem;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+}
+
+.juan-nav a:hover {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+}
+
+.back-link {
+    font-family: sans-serif;
+    font-size: 0.85rem;
+}
+
+.back-link a {
+    color: var(--accent);
+    text-decoration: none;
+}
+
+/* --- Theme button --- */
+.theme-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--fg-secondary);
+    padding: 2px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    font-family: sans-serif;
+}
+
+.theme-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+}

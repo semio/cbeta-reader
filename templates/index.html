@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}CBETA Reader — 目錄{% endblock %}
+
+{% block content %}
+<div class="catalog">
+    <h1>CBETA 經藏目錄</h1>
+    {% for collection in collections %}
+    <details>
+        <summary>{{ collection.label }}</summary>
+        {% macro render_items(items) %}
+        <ul>
+        {% for item in items %}
+            {% if item.__class__.__name__ == 'NavCategory' %}
+            <li>
+                <details>
+                    <summary>{{ item.label }}</summary>
+                    {{ render_items(item.children) }}
+                </details>
+            </li>
+            {% else %}
+            <li><a href="{{ url_for('read_text', href=item.href) }}">{{ item.label }}</a></li>
+            {% endif %}
+        {% endfor %}
+        </ul>
+        {% endmacro %}
+        {{ render_items(collection.children) }}
+    </details>
+    {% endfor %}
+</div>
+{% endblock %}

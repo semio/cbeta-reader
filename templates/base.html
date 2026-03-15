@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-Hant" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}CBETA Reader{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="settings-bar">
+        <span class="back-link"><a href="{{ url_for('index') }}">CBETA Reader</a></span>
+        <span class="spacer"></span>
+        <label>字體
+            <select id="font-family" onchange="setFont(this.value)">
+                <option value='"Noto Serif CJK TC", serif'>思源宋體</option>
+                <option value='"Noto Sans CJK TC", sans-serif'>思源黑體</option>
+                <option value='serif'>系統襯線</option>
+                <option value='sans-serif'>系統無襯線</option>
+            </select>
+        </label>
+        <label>大小
+            <input type="range" id="font-size" min="16" max="32" value="20" onchange="setSize(this.value)">
+        </label>
+        <button class="theme-btn" onclick="cycleTheme()">主題</button>
+    </div>
+
+    {% block content %}{% endblock %}
+
+    <script>
+        const themes = ['light', 'sepia', 'dark'];
+        let themeIdx = themes.indexOf(localStorage.getItem('theme') || 'light');
+
+        function applySettings() {
+            const theme = localStorage.getItem('theme') || 'light';
+            const font = localStorage.getItem('fontFamily') || '"Noto Serif CJK TC", serif';
+            const size = localStorage.getItem('fontSize') || '20';
+            document.documentElement.dataset.theme = theme;
+            document.body.style.fontFamily = font;
+            document.body.style.fontSize = size + 'px';
+            document.getElementById('font-size').value = size;
+            // Select matching font option
+            const sel = document.getElementById('font-family');
+            for (let opt of sel.options) {
+                if (opt.value === font) { opt.selected = true; break; }
+            }
+        }
+
+        function cycleTheme() {
+            themeIdx = (themeIdx + 1) % themes.length;
+            localStorage.setItem('theme', themes[themeIdx]);
+            document.documentElement.dataset.theme = themes[themeIdx];
+        }
+
+        function setFont(val) {
+            localStorage.setItem('fontFamily', val);
+            document.body.style.fontFamily = val;
+        }
+
+        function setSize(val) {
+            localStorage.setItem('fontSize', val);
+            document.body.style.fontSize = val + 'px';
+        }
+
+        applySettings();
+    </script>
+</body>
+</html>

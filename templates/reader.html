@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}{{ text.title }} — CBETA Reader{% endblock %}
+
+{% block content %}
+<div class="reader">
+    <div class="reader-header">
+        <h1>{{ text.title }}</h1>
+        {% if text.author %}<div class="author">{{ text.author }}</div>{% endif %}
+    </div>
+
+    {{ text.body_html | safe }}
+
+    <div class="juan-nav">
+        {% if prev_href %}
+            <a href="{{ url_for('read_text', href=prev_href) }}">← 上一卷</a>
+        {% else %}
+            <span></span>
+        {% endif %}
+        {% if next_href %}
+            <a href="{{ url_for('read_text', href=next_href) }}">下一卷 →</a>
+        {% else %}
+            <span></span>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
