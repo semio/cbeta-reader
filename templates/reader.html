@@ -2,6 +2,35 @@
 {% block title %}{{ text.title }} — CBETA Reader{% endblock %}
 
 {% block content %}
+{% if toc %}
+<nav class="toc-sidebar" id="toc-sidebar">
+    <div class="toc-header">
+        <strong>目次</strong>
+        <button class="toc-close" onclick="toggleToc()">&times;</button>
+    </div>
+    <div class="toc-body">
+    {% macro render_toc(entries) %}
+    <ul>
+    {% for entry in entries %}
+        <li>
+            <a href="{{ url_for('read_text', href=entry.href) }}"
+               {% if entry.href == href %}class="toc-active"{% endif %}>
+                {% if entry.type %}{{ entry.type }}：{% endif %}{{ entry.text }}
+                <span class="toc-juan">卷{{ entry.juan }}</span>
+            </a>
+            {% if entry.children %}
+                {{ render_toc(entry.children) }}
+            {% endif %}
+        </li>
+    {% endfor %}
+    </ul>
+    {% endmacro %}
+    {{ render_toc(toc) }}
+    </div>
+</nav>
+<button class="toc-toggle" id="toc-toggle" onclick="toggleToc()" title="目次">目次</button>
+{% endif %}
+
 <div class="reader">
     <div class="reader-header">
         <h1>{{ text.title }}</h1>
@@ -23,4 +52,13 @@
         {% endif %}
     </div>
 </div>
+
+<script>
+function toggleToc() {
+    const sidebar = document.getElementById('toc-sidebar');
+    const toggle = document.getElementById('toc-toggle');
+    sidebar.classList.toggle('open');
+    toggle.classList.toggle('hidden');
+}
+</script>
 {% endblock %}

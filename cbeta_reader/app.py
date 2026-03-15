@@ -9,6 +9,7 @@ from flask import Flask, render_template, abort
 
 from .catalog import Catalog
 from .parser import parse_xml
+from .toc import build_toc
 
 CBETA_PATH = Path("/home/semio/Downloads/bookcase_v098_20251216/Bookcase/CBETA")
 
@@ -54,13 +55,29 @@ def read_text(href: str):
         if next_file.exists():
             next_href = str(next_file.relative_to(CBETA_PATH))
 
+    # Build TOC for sidebar
+    toc_href = re.sub(r"_\d+\.xml$", "_001.xml", href)
+    toc = build_toc(CBETA_PATH, toc_href)
+
     return render_template(
         "reader.html",
         text=parsed,
         href=href,
         prev_href=prev_href,
         next_href=next_href,
+        toc=toc,
     )
+
+
+@app.route("/toc/<path:href>")
+def text_toc(href: str):
+    """Full table of contents for a text."""
+    xml_path = CBETA_PATH / href
+    if not xml_path.exists():
+        abort(404)
+    parsed = parse_xml(xml_path)
+    toc = build_toc(CBETA_PATH, href)
+    return render_template("toc.html", text=parsed, toc=toc, href=href)
 
 
 def main():

@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}{{ text.title }} — 目次{% endblock %}
+
+{% block content %}
+<div class="catalog">
+    <h1>{{ text.title }}</h1>
+    {% if text.author %}<p class="toc-author">{{ text.author }}</p>{% endif %}
+
+    {% macro render_toc(entries) %}
+    <ul class="toc-list">
+    {% for entry in entries %}
+        <li>
+            <a href="{{ url_for('read_text', href=entry.href) }}">
+                {% if entry.type %}{{ entry.type }}：{% endif %}{{ entry.text }}
+                <span class="toc-juan">卷{{ entry.juan }}</span>
+            </a>
+            {% if entry.children %}
+                {{ render_toc(entry.children) }}
+            {% endif %}
+        </li>
+    {% endfor %}
+    </ul>
+    {% endmacro %}
+
+    {{ render_toc(toc) }}
+</div>
+{% endblock %}

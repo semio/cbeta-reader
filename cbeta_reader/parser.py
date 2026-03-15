@@ -76,6 +76,17 @@ def _text_content(el: etree._Element, char_map: dict[str, str]) -> str:
                 parts.append(_text_content(lem, char_map))
         elif tag == "rdg":
             pass  # Skip variant readings
+        elif tag == "tt":
+            # cb:tt — bilingual annotation; keep only Chinese text
+            for t in child:
+                t_tag = etree.QName(t.tag).localname if isinstance(t.tag, str) else ""
+                if t_tag == "t":
+                    lang = t.get(f"{{{XML_NS}}}lang", "")
+                    if lang.startswith("zh"):
+                        parts.append(_text_content(t, char_map))
+                        if t.tail:
+                            parts.append(t.tail)
+                        break
         elif tag in ("lb", "pb", "milestone"):
             pass  # Skip structural markers
         elif tag == "space":
@@ -193,6 +204,27 @@ def _walk_body(el: etree._Element, char_map: dict[str, str], parts: list[str]) -
             _walk_body(lem, char_map, parts)
         return
     elif tag in ("rdg",):
+        return
+    elif tag == "tt":
+        # cb:tt — bilingual annotation; keep only Chinese text
+        for child in el:
+            child_tag = etree.QName(child.tag).localname if isinstance(child.tag, str) else ""
+            if child_tag == "t":
+                lang = child.get(f"{{{XML_NS}}}lang", "")
+                if lang.startswith("zh"):
+                    parts.append(_escape(_text_content(child, char_map)))
+                    break
+        if el.tail and el.tail.strip():
+            parts.append(_escape(el.tail))
+        return
+    elif tag == "t":
+        # cb:t outside of cb:tt — only render Chinese
+        lang = el.get(f"{{{XML_NS}}}lang", "")
+        if not lang.startswith("zh") and lang:
+            return
+        parts.append(_escape(_text_content(el, char_map)))
+        if el.tail and el.tail.strip():
+            parts.append(_escape(el.tail))
         return
     elif tag == "docNumber":
         return  # Skip "No. X" markers

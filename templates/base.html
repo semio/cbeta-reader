@@ -21,6 +21,9 @@
         <label>大小
             <input type="range" id="font-size" min="16" max="32" value="20" onchange="setSize(this.value)">
         </label>
+        <label>版寬
+            <input type="range" id="content-width" min="30" max="80" value="48" onchange="setWidth(this.value)">
+        </label>
         <button class="theme-btn" onclick="cycleTheme()">主題</button>
     </div>
 
@@ -34,10 +37,13 @@
             const theme = localStorage.getItem('theme') || 'light';
             const font = localStorage.getItem('fontFamily') || '"Noto Serif CJK TC", serif';
             const size = localStorage.getItem('fontSize') || '20';
+            const width = localStorage.getItem('contentWidth') || '48';
             document.documentElement.dataset.theme = theme;
             document.body.style.fontFamily = font;
             document.body.style.fontSize = size + 'px';
+            document.documentElement.style.setProperty('--content-width', width + 'rem');
             document.getElementById('font-size').value = size;
+            document.getElementById('content-width').value = width;
             // Select matching font option
             const sel = document.getElementById('font-family');
             for (let opt of sel.options) {
@@ -59,6 +65,11 @@
         function setSize(val) {
             localStorage.setItem('fontSize', val);
             document.body.style.fontSize = val + 'px';
+        }
+
+        function setWidth(val) {
+            localStorage.setItem('contentWidth', val);
+            document.documentElement.style.setProperty('--content-width', val + 'rem');
         }
 
         applySettings();
