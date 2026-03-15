@@ -39,33 +39,115 @@ body {
     -webkit-font-smoothing: antialiased;
 }
 
-/* --- Settings bar --- */
-.settings-bar {
-    position: sticky;
-    top: 0;
-    z-index: 100;
+html.vertical body {
     display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 0.4rem 1rem;
-    background: var(--bg);
-    border-bottom: 1px solid var(--border);
-    font-size: 14px;
-    flex-wrap: wrap;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 1rem 0;
 }
 
-.settings-bar label {
+/* --- Settings panel (floating) --- */
+.settings-toggle {
+    position: fixed;
+    right: 0.8rem;
+    bottom: 1.5rem;
+    z-index: 150;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--accent);
+    padding: 0.4rem 0.8rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-family: sans-serif;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    writing-mode: horizontal-tb;
+}
+
+.settings-toggle:hover {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+}
+
+.settings-toggle.hidden { display: none; }
+
+.settings-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 18rem;
+    height: 100vh;
+    background: var(--bg);
+    border-left: 1px solid var(--border);
+    transform: translateX(100%);
+    transition: transform 0.25s ease;
+    z-index: 200;
+    display: flex;
+    flex-direction: column;
+    box-shadow: -2px 0 8px rgba(0,0,0,0.1);
+    writing-mode: horizontal-tb;
+}
+
+.settings-panel.open {
+    transform: translateX(0);
+}
+
+.settings-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.8rem 1rem;
+    border-bottom: 1px solid var(--border);
+    font-family: sans-serif;
+    font-size: 0.95rem;
+}
+
+.settings-close {
+    background: none;
+    border: none;
     color: var(--fg-secondary);
+    font-size: 1.3rem;
+    cursor: pointer;
+    padding: 0 0.3rem;
+}
+
+.settings-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    font-size: 14px;
     font-family: sans-serif;
 }
 
-.settings-bar select,
-.settings-bar input[type="range"] {
+.settings-body label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    color: var(--fg-secondary);
+}
+
+.settings-body select,
+.settings-body input[type="range"] {
     font-size: 13px;
     padding: 2px 4px;
 }
 
-.settings-bar .spacer { flex: 1; }
+.settings-home {
+    color: var(--accent);
+    text-decoration: none;
+    font-size: 0.9rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.settings-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
 
 /* --- Index / catalog --- */
 .catalog {
@@ -101,6 +183,14 @@ body {
     content: "▾ ";
 }
 
+.vertical .catalog summary::before {
+    content: "▾ ";
+}
+
+.vertical .catalog details[open] > summary::before {
+    content: "◂ ";
+}
+
 .catalog ul {
     list-style: none;
     padding-left: 1.2rem;
@@ -124,8 +214,9 @@ body {
 /* --- Reader --- */
 .reader {
     max-width: var(--content-width);
-    margin: 0 auto;
+    margin: 2rem auto;
     padding: 2rem 1.5rem 4rem;
+    min-height: calc(100vh - 4rem);
 }
 
 .reader-header {
@@ -371,3 +462,68 @@ h3 {
 .toc-list a:hover {
     color: var(--accent);
 }
+
+/* --- Vertical (traditional) reading mode --- */
+.vertical .reader {
+    writing-mode: vertical-rl;
+    max-width: none;
+    height: var(--content-height, 80vh);
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 1.5rem 2rem;
+    margin: auto;
+    min-height: 0;
+    scrollbar-width: none;
+}
+
+.vertical .reader::-webkit-scrollbar {
+    display: none;
+}
+
+.vertical .body-text {
+    text-indent: 0;
+    margin-bottom: 0;
+    margin-left: 0.5em;
+}
+
+.vertical h2.juan {
+    margin: 0 2rem 0 1.5rem;
+}
+
+.vertical h3 {
+    margin: 0 1.5rem 0 0.8rem;
+}
+
+.vertical .byline {
+    margin: 0 1rem 0 0.8rem;
+}
+
+.vertical .verse {
+    padding-left: 0;
+    padding-top: 2em;
+}
+
+.vertical .juan-nav {
+    writing-mode: horizontal-tb;
+    border-top: none;
+    border-left: 1px solid var(--border);
+    margin-top: 0;
+    margin-left: 2rem;
+    padding: 1rem 1.5rem;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.vertical .catalog {
+    writing-mode: vertical-rl;
+    max-width: none;
+    height: var(--content-height, 80vh);
+    overflow-x: auto;
+    overflow-y: hidden;
+    margin: auto;
+}
+
+/* Hide width control in vertical, show height control */
+.vertical .width-control { display: none; }
+label.height-control { display: none; }
+.vertical label.height-control { display: flex; }
