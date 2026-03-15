@@ -105,6 +105,21 @@
             document.getElementById('vertical-btn').textContent = on ? '橫排' : '直排';
         }
 
+        document.addEventListener('click', function(e) {
+            const settings = document.getElementById('settings-panel');
+            const settingsBtn = document.getElementById('settings-toggle');
+            if (settings.classList.contains('open') &&
+                !settings.contains(e.target) && e.target !== settingsBtn) {
+                toggleSettings();
+            }
+            const toc = document.getElementById('toc-sidebar');
+            const tocBtn = document.getElementById('toc-toggle');
+            if (toc && toc.classList.contains('open') &&
+                !toc.contains(e.target) && e.target !== tocBtn) {
+                toggleToc();
+            }
+        });
+
         applySettings();
     </script>
 </body>

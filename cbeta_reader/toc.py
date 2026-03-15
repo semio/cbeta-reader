@@ -15,6 +15,7 @@ class TocEntry:
     text: str
     type: str
     juan: int
+    anchor: str = ""
     children: list[TocEntry] = field(default_factory=list)
 
 
@@ -49,6 +50,7 @@ def build_toc(cbeta_path: Path, href: str) -> list[TocEntry]:
                     text=text,
                     type=m["type"],
                     juan=parsed.juan,
+                    anchor=f"mulu-{text}",
                 )
             )
 

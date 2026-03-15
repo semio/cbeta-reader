@@ -13,7 +13,7 @@
     <ul>
     {% for entry in entries %}
         <li>
-            <a href="{{ url_for('read_text', text_id=text_id, juan=entry.juan) }}"
+            <a href="{{ url_for('read_text', text_id=text_id, juan=entry.juan) }}{% if entry.anchor %}#{{ entry.anchor }}{% endif %}"
                {% if entry.juan == juan %}class="toc-active"{% endif %}>
                 {% if entry.type %}{{ entry.type }}：{% endif %}{{ entry.text }}
                 <span class="toc-juan">卷{{ entry.juan }}</span>

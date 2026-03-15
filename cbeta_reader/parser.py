@@ -150,18 +150,30 @@ def parse_xml(path: Path) -> ParsedText:
 def _body_to_html(body: etree._Element, char_map: dict[str, str]) -> str:
     """Convert TEI body to clean HTML."""
     parts: list[str] = []
-    _walk_body(body, char_map, parts)
+    state: dict[str, str | None] = {"pending_mulu": None}
+    _walk_body(body, char_map, parts, state)
     return "".join(parts)
 
 
-def _walk_body(el: etree._Element, char_map: dict[str, str], parts: list[str]) -> None:
+def _walk_body(
+    el: etree._Element,
+    char_map: dict[str, str],
+    parts: list[str],
+    state: dict[str, str | None],
+) -> None:
     tag = etree.QName(el.tag).localname if isinstance(el.tag, str) else ""
 
     if tag == "lb":
-        # Line break — just add a newline within paragraphs
         return
     elif tag == "pb":
-        # Page break
+        return
+    elif tag == "mulu":
+        # Track mulu text so the next <head> gets an anchor
+        text = el.text or ""
+        if text:
+            state["pending_mulu"] = text
+        for child in el:
+            _walk_body(child, char_map, parts, state)
         return
     elif tag == "milestone":
         n = el.get("n", "")
@@ -169,7 +181,13 @@ def _walk_body(el: etree._Element, char_map: dict[str, str], parts: list[str]) -
             parts.append(f'<h2 class="juan">第{_to_chinese_num(n)}卷</h2>\n')
         return
     elif tag == "head":
-        parts.append("<h3>")
+        anchor = state.get("pending_mulu")
+        if anchor:
+            anchor_id = _escape_attr(anchor)
+            parts.append(f'<h3 id="mulu-{anchor_id}">')
+            state["pending_mulu"] = None
+        else:
+            parts.append("<h3>")
         parts.append(_escape(_text_content(el, char_map)))
         parts.append("</h3>\n")
         return
@@ -186,7 +204,7 @@ def _walk_body(el: etree._Element, char_map: dict[str, str], parts: list[str]) -
     elif tag == "lg":
         parts.append('<div class="verse">')
         for child in el:
-            _walk_body(child, char_map, parts)
+            _walk_body(child, char_map, parts, state)
         parts.append("</div>\n")
         if el.tail and el.tail.strip():
             parts.append(_escape(el.tail))
@@ -201,7 +219,7 @@ def _walk_body(el: etree._Element, char_map: dict[str, str], parts: list[str]) -
     elif tag in ("app",):
         lem = el.find(f"{{{TEI_NS}}}lem")
         if lem is not None:
-            _walk_body(lem, char_map, parts)
+            _walk_body(lem, char_map, parts, state)
         return
     elif tag in ("rdg",):
         return
@@ -228,23 +246,27 @@ def _walk_body(el: etree._Element, char_map: dict[str, str], parts: list[str]) -
         return
     elif tag == "docNumber":
         return  # Skip "No. X" markers
-    elif tag in ("div", "mulu"):
-        # cb:div — walk children
+    elif tag == "div":
         for child in el:
-            _walk_body(child, char_map, parts)
+            _walk_body(child, char_map, parts, state)
         return
 
     # Default: recurse into children
     if el.text and el.text.strip():
         parts.append(_escape(el.text))
     for child in el:
-        _walk_body(child, char_map, parts)
+        _walk_body(child, char_map, parts, state)
     if el.tail and el.tail.strip():
         parts.append(_escape(el.tail))
 
 
 def _escape(text: str) -> str:
     return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+
+def _escape_attr(text: str) -> str:
+    """Escape text for use as an HTML attribute value."""
+    return text.replace("&", "&amp;").replace('"', "&quot;").replace("<", "&lt;").replace(">", "&gt;")
 
 
 def _to_chinese_num(n: str) -> str:
