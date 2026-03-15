@@ -782,6 +782,35 @@ h3 {
     font-size: 0.85rem;
 }
 
+/* --- Page break anchors --- */
+.pb {
+    display: block;
+    height: 0;
+}
+
+/* --- Restore toast --- */
+.restore-toast {
+    position: fixed;
+    bottom: 3.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--fg);
+    color: var(--bg);
+    padding: 0.5rem 1.2rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-family: sans-serif;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 300;
+    pointer-events: none;
+    writing-mode: horizontal-tb;
+}
+
+.restore-toast.visible {
+    opacity: 0.85;
+}
+
 /* Hide width control in vertical, show height control */
 .vertical .width-control { display: none; }
 label.height-control { display: none; }

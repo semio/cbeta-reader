@@ -103,9 +103,18 @@
         }
 
         function toggleVertical() {
+            // Save current anchor before switching
+            const anchor = typeof findNearestAnchor === 'function' ? findNearestAnchor() : null;
             const on = document.documentElement.classList.toggle('vertical');
             localStorage.setItem('vertical', on);
             document.getElementById('vertical-btn').textContent = on ? '橫排' : '直排';
+            // Restore position after layout change
+            if (anchor) {
+                requestAnimationFrame(() => {
+                    const target = document.getElementById(anchor);
+                    if (target) target.scrollIntoView();
+                });
+            }
         }
 
         document.addEventListener('click', function(e) {

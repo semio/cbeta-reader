@@ -89,15 +89,15 @@ function findNearestAnchor() {
     if (!anchors.length) return null;
     const isVertical = document.documentElement.classList.contains('vertical');
     let best = null;
-    let bestDist = Infinity;
     for (const a of anchors) {
         const rect = a.getBoundingClientRect();
-        const pos = isVertical ? rect.right : rect.top;
-        const dist = isVertical ? -pos : pos;
-        if (dist <= 10 && Math.abs(dist) < bestDist) {
-            bestDist = Math.abs(dist);
-            best = a.id;
-        }
+        // Last anchor that has scrolled past the reading edge:
+        // Horizontal: rect.top <= 10 (past viewport top)
+        // Vertical-rl: rect.right >= innerWidth (past right edge, read content moves right)
+        const passed = isVertical
+            ? rect.right >= window.innerWidth - 10
+            : rect.top <= 10;
+        if (passed) best = a.id;
     }
     return best || anchors[0].id;
 }
@@ -118,10 +118,29 @@ function restoreProgress() {
     try {
         const progress = JSON.parse(localStorage.getItem('readingProgress'));
         if (!progress || progress.text_id !== TEXT_ID || progress.juan !== JUAN) return;
-        if (window.location.hash) return;
         if (!progress.anchor) return;
+        const hash = window.location.hash.slice(1);
+        if (hash && hash !== progress.anchor) return;
         const target = document.getElementById(progress.anchor);
-        if (target) target.scrollIntoView();
+        if (!target) return;
+        const isVertical = document.documentElement.classList.contains('vertical');
+        if (isVertical) {
+            const reader = document.querySelector('.reader');
+            const targetRect = target.getBoundingClientRect();
+            const readerRect = reader.getBoundingClientRect();
+            reader.scrollLeft += targetRect.right - readerRect.right;
+        } else {
+            target.scrollIntoView();
+        }
+        const toast = document.createElement('div');
+        toast.className = 'restore-toast';
+        toast.textContent = '已恢復上次閱讀位置';
+        document.body.appendChild(toast);
+        setTimeout(() => toast.classList.add('visible'), 10);
+        setTimeout(() => {
+            toast.classList.remove('visible');
+            setTimeout(() => toast.remove(), 300);
+        }, 2000);
     } catch(e) {}
 }
 
@@ -131,16 +150,29 @@ function onScroll() {
     scrollTimer = setTimeout(saveProgress, 300);
 }
 
-const isVertical = document.documentElement.classList.contains('vertical');
-if (isVertical) {
-    const reader = document.querySelector('.reader');
-    if (reader) reader.addEventListener('scroll', onScroll, { passive: true });
-} else {
-    window.addEventListener('scroll', onScroll, { passive: true });
-}
+window.addEventListener('scroll', onScroll, { passive: true });
+const reader = document.querySelector('.reader');
+if (reader) reader.addEventListener('scroll', onScroll, { passive: true });
 
-saveProgress();
-requestAnimationFrame(() => restoreProgress());
+restoreProgress();
+
+// Convert vertical mouse wheel to horizontal scroll when in vertical mode
+if (reader) reader.addEventListener('wheel', function(e) {
+    if (!document.documentElement.classList.contains('vertical')) return;
+    if (e.deltaX) return; // trackpad horizontal scroll, don't interfere
+    e.preventDefault();
+    reader.scrollLeft -= e.deltaY;
+}, { passive: false });
+// Save text info so "繼續閱讀" shows this text, but preserve existing anchor
+(function() {
+    try {
+        const existing = JSON.parse(localStorage.getItem('readingProgress'));
+        if (existing && existing.text_id === TEXT_ID && existing.juan === JUAN && existing.anchor) return;
+    } catch(e) {}
+    localStorage.setItem('readingProgress', JSON.stringify({
+        text_id: TEXT_ID, juan: JUAN, title: TEXT_TITLE, anchor: null, timestamp: Date.now()
+    }));
+})();
 
 /* --- Bookmarks --- */
 function toggleBookmarks() {
