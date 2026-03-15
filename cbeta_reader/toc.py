@@ -15,7 +15,6 @@ class TocEntry:
     text: str
     type: str
     juan: int
-    href: str
     children: list[TocEntry] = field(default_factory=list)
 
 
@@ -37,7 +36,6 @@ def build_toc(cbeta_path: Path, href: str) -> list[TocEntry]:
     seen: set[tuple[int, str]] = set()
     for juan_file in sorted(parent_dir.glob(f"{base}_*.xml")):
         parsed = parse_xml(juan_file)
-        juan_href = str(juan_file.relative_to(cbeta_path))
         for m in parsed.mulu:
             level = int(m["level"])
             text = m["text"]
@@ -51,7 +49,6 @@ def build_toc(cbeta_path: Path, href: str) -> list[TocEntry]:
                     text=text,
                     type=m["type"],
                     juan=parsed.juan,
-                    href=juan_href,
                 )
             )
 

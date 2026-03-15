@@ -18,7 +18,8 @@
                 </details>
             </li>
             {% else %}
-            <li><a href="{{ url_for('read_text', href=item.href) }}">{{ item.label }}</a></li>
+            {% set tid, j = href_to_id_juan(item.href) %}
+            <li><a href="{{ url_for('read_text', text_id=tid, juan=j) }}">{{ item.label }}</a></li>
             {% endif %}
         {% endfor %}
         </ul>

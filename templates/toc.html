@@ -10,7 +10,7 @@
     <ul class="toc-list">
     {% for entry in entries %}
         <li>
-            <a href="{{ url_for('read_text', href=entry.href) }}">
+            <a href="{{ url_for('read_text', text_id=text_id, juan=entry.juan) }}">
                 {% if entry.type %}{{ entry.type }}：{% endif %}{{ entry.text }}
                 <span class="toc-juan">卷{{ entry.juan }}</span>
             </a>

@@ -13,8 +13,8 @@
     <ul>
     {% for entry in entries %}
         <li>
-            <a href="{{ url_for('read_text', href=entry.href) }}"
-               {% if entry.href == href %}class="toc-active"{% endif %}>
+            <a href="{{ url_for('read_text', text_id=text_id, juan=entry.juan) }}"
+               {% if entry.juan == juan %}class="toc-active"{% endif %}>
                 {% if entry.type %}{{ entry.type }}：{% endif %}{{ entry.text }}
                 <span class="toc-juan">卷{{ entry.juan }}</span>
             </a>
@@ -40,13 +40,13 @@
     {{ text.body_html | safe }}
 
     <div class="juan-nav">
-        {% if prev_href %}
-            <a href="{{ url_for('read_text', href=prev_href) }}">← 上一卷</a>
+        {% if prev_juan %}
+            <a href="{{ url_for('read_text', text_id=text_id, juan=prev_juan) }}">← 上一卷</a>
         {% else %}
             <span></span>
         {% endif %}
-        {% if next_href %}
-            <a href="{{ url_for('read_text', href=next_href) }}">下一卷 →</a>
+        {% if next_juan %}
+            <a href="{{ url_for('read_text', text_id=text_id, juan=next_juan) }}">下一卷 →</a>
         {% else %}
             <span></span>
         {% endif %}
