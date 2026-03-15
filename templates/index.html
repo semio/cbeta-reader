@@ -77,7 +77,7 @@ function renderBookmarks() {
     }
     list.innerHTML = bm.map(function(b, i) {
         const date = new Date(b.timestamp).toLocaleDateString('zh-TW');
-        const href = '/read/' + b.text_id + '/' + b.juan;
+        const href = '/read/' + b.text_id + '/' + b.juan + (b.anchor ? '#' + b.anchor : '');
         return '<li class="bookmark-item">' +
             '<a href="' + href + '">' +
             '<span class="bookmark-item-title">' + b.title + '</span>' +
@@ -107,7 +107,7 @@ document.addEventListener('click', function(e) {
             const link = document.getElementById('continue-reading-link');
             const title = document.getElementById('cr-title');
             const meta = document.getElementById('cr-meta');
-            link.href = '/read/' + progress.text_id + '/' + progress.juan;
+            link.href = '/read/' + progress.text_id + '/' + progress.juan + (progress.anchor ? '#' + progress.anchor : '');
             title.textContent = progress.title;
             const date = new Date(progress.timestamp);
             meta.textContent = '卷' + progress.juan + ' · ' + date.toLocaleDateString('zh-TW');

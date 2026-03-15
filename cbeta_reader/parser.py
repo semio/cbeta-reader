@@ -161,6 +161,16 @@ def _body_to_html(body: etree._Element, char_map: dict[str, str]) -> str:
     return "".join(parts)
 
 
+def _emit_pb_anchors(el: etree._Element, parts: list[str]) -> None:
+    """Emit pb anchor spans found as direct children of el."""
+    for child in el:
+        tag = etree.QName(child.tag).localname if isinstance(child.tag, str) else ""
+        if tag == "pb":
+            xml_id = child.get(f"{{{XML_NS}}}id", "")
+            if xml_id:
+                parts.append(f'<span class="pb" id="{_escape_attr(xml_id)}"></span>')
+
+
 def _walk_body(
     el: etree._Element,
     char_map: dict[str, str],
@@ -172,6 +182,9 @@ def _walk_body(
     if tag == "lb":
         return
     elif tag == "pb":
+        xml_id = el.get(f"{{{XML_NS}}}id", "")
+        if xml_id:
+            parts.append(f'<span class="pb" id="{_escape_attr(xml_id)}"></span>')
         return
     elif tag == "mulu":
         # Track mulu text so the next <head> gets an anchor
@@ -187,6 +200,7 @@ def _walk_body(
             parts.append(f'<h2 class="juan">第{_to_chinese_num(n)}卷</h2>\n')
         return
     elif tag == "head":
+        _emit_pb_anchors(el, parts)
         anchor = state.get("pending_mulu")
         if anchor:
             anchor_id = _escape_attr(anchor)
@@ -198,11 +212,13 @@ def _walk_body(
         parts.append("</h3>\n")
         return
     elif tag == "p":
+        _emit_pb_anchors(el, parts)
         parts.append('<p class="body-text">')
         parts.append(_escape(_text_content(el, char_map)))
         parts.append("</p>\n")
         return
     elif tag in ("byline",):
+        _emit_pb_anchors(el, parts)
         parts.append('<p class="byline">')
         parts.append(_escape(_text_content(el, char_map)))
         parts.append("</p>\n")
@@ -216,6 +232,7 @@ def _walk_body(
             parts.append(_escape(el.tail))
         return
     elif tag == "l":
+        _emit_pb_anchors(el, parts)
         parts.append('<p class="verse-line">')
         parts.append(_escape(_text_content(el, char_map)))
         parts.append("</p>\n")
@@ -272,7 +289,9 @@ def _escape(text: str) -> str:
 
 def _escape_attr(text: str) -> str:
     """Escape text for use as an HTML attribute value."""
-    return text.replace("&", "&amp;").replace('"', "&quot;").replace("<", "&lt;").replace(">", "&gt;")
+    return (
+        text.replace("&", "&amp;").replace('"', "&quot;").replace("<", "&lt;").replace(">", "&gt;")
+    )
 
 
 def _to_chinese_num(n: str) -> str:

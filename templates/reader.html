@@ -84,16 +84,31 @@ function getScrollElement() {
     return isVertical ? document.querySelector('.reader') : document.documentElement;
 }
 
-function saveProgress() {
-    const el = getScrollElement();
+function findNearestAnchor() {
+    const anchors = document.querySelectorAll('.reader .pb[id], .reader h3[id]');
+    if (!anchors.length) return null;
     const isVertical = document.documentElement.classList.contains('vertical');
-    const pos = isVertical ? el.scrollLeft : el.scrollTop;
+    let best = null;
+    let bestDist = Infinity;
+    for (const a of anchors) {
+        const rect = a.getBoundingClientRect();
+        const pos = isVertical ? rect.right : rect.top;
+        const dist = isVertical ? -pos : pos;
+        if (dist <= 10 && Math.abs(dist) < bestDist) {
+            bestDist = Math.abs(dist);
+            best = a.id;
+        }
+    }
+    return best || anchors[0].id;
+}
+
+function saveProgress() {
+    const anchor = findNearestAnchor();
     const data = {
         text_id: TEXT_ID,
         juan: JUAN,
         title: TEXT_TITLE,
-        scrollPos: pos,
-        vertical: isVertical,
+        anchor: anchor,
         timestamp: Date.now()
     };
     localStorage.setItem('readingProgress', JSON.stringify(data));
@@ -104,13 +119,9 @@ function restoreProgress() {
         const progress = JSON.parse(localStorage.getItem('readingProgress'));
         if (!progress || progress.text_id !== TEXT_ID || progress.juan !== JUAN) return;
         if (window.location.hash) return;
-        const el = getScrollElement();
-        const isVertical = document.documentElement.classList.contains('vertical');
-        if (isVertical) {
-            el.scrollLeft = progress.scrollPos;
-        } else {
-            el.scrollTop = progress.scrollPos;
-        }
+        if (!progress.anchor) return;
+        const target = document.getElementById(progress.anchor);
+        if (target) target.scrollIntoView();
     } catch(e) {}
 }
 
@@ -148,14 +159,12 @@ function saveBookmarks(bm) {
 
 function addBookmark() {
     const bm = getBookmarks();
-    const el = getScrollElement();
-    const isV = document.documentElement.classList.contains('vertical');
+    const anchor = findNearestAnchor();
     bm.unshift({
         text_id: TEXT_ID,
         juan: JUAN,
         title: TEXT_TITLE,
-        scrollPos: isV ? el.scrollLeft : el.scrollTop,
-        vertical: isV,
+        anchor: anchor,
         timestamp: Date.now()
     });
     saveBookmarks(bm);
@@ -178,9 +187,9 @@ function renderBookmarks() {
     }
     list.innerHTML = bm.map(function(b, i) {
         const date = new Date(b.timestamp).toLocaleDateString('zh-TW');
-        const href = '/read/' + b.text_id + '/' + b.juan;
+        const href = '/read/' + b.text_id + '/' + b.juan + (b.anchor ? '#' + b.anchor : '');
         return '<li class="bookmark-item">' +
-            '<a href="' + href + '" data-scroll="' + b.scrollPos + '" data-vertical="' + (b.vertical || false) + '">' +
+            '<a href="' + href + '">' +
             '<span class="bookmark-item-title">' + b.title + '</span>' +
             '<span class="bookmark-item-meta">卷' + b.juan + ' · ' + date + '</span>' +
             '</a>' +
@@ -188,37 +197,6 @@ function renderBookmarks() {
             '</li>';
     }).join('');
 }
-
-document.getElementById('bookmark-list').addEventListener('click', function(e) {
-    const a = e.target.closest('a[data-scroll]');
-    if (!a) return;
-    const scrollPos = parseFloat(a.dataset.scroll);
-    const vertical = a.dataset.vertical === 'true';
-    const href = a.getAttribute('href');
-    const currentPath = '/read/' + TEXT_ID + '/' + JUAN;
-    if (href === currentPath) {
-        e.preventDefault();
-        const el = getScrollElement();
-        if (vertical) { el.scrollLeft = scrollPos; }
-        else { el.scrollTop = scrollPos; }
-        toggleBookmarks();
-    } else {
-        sessionStorage.setItem('bookmarkScroll', JSON.stringify({ scrollPos, vertical }));
-    }
-});
-
-(function restoreBookmarkScroll() {
-    try {
-        const data = JSON.parse(sessionStorage.getItem('bookmarkScroll'));
-        if (!data) return;
-        sessionStorage.removeItem('bookmarkScroll');
-        requestAnimationFrame(function() {
-            const el = getScrollElement();
-            if (data.vertical) { el.scrollLeft = data.scrollPos; }
-            else { el.scrollTop = data.scrollPos; }
-        });
-    } catch(e) {}
-})();
 
 renderBookmarks();
 
