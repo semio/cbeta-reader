@@ -17,8 +17,10 @@
             <a href="{{ url_for('index') }}" class="settings-home">← 目錄</a>
             <label>字體
                 <select id="font-family" onchange="setFont(this.value)">
-                    <option value='"Noto Serif CJK TC", serif'>思源宋體</option>
-                    <option value='"Noto Sans CJK TC", sans-serif'>思源黑體</option>
+                    <option value='"Noto Serif CJK TC", "Source Han Serif TC", "HanaMinA", "HanaMinB", serif'>思源宋體</option>
+                    <option value='"Noto Sans CJK TC", "Source Han Sans TC", "HanaMinA", "HanaMinB", sans-serif'>思源黑體</option>
+                    <option value='"FZPingXianYaSong-R-GBK", "HanaMinA", "HanaMinB", serif'>方正屏显宋</option>
+                    <option value='"Fusion Kai T", "HanaMinA", "HanaMinB", serif'>缝合楷</option>
                     <option value='serif'>系統襯線</option>
                     <option value='sans-serif'>系統無襯線</option>
                 </select>
