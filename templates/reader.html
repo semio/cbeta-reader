@@ -46,6 +46,7 @@
 <div class="reader">
     <div class="reader-header">
         <h1>{{ text.title }}</h1>
+        {% if text.doc_number %}<div class="doc-number">{{ text.doc_number }}</div>{% endif %}
         {% if text.author %}<div class="author">{{ text.author }}</div>{% endif %}
     </div>
 

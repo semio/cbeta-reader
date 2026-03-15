@@ -20,6 +20,7 @@ class ParsedText:
     author: str = ""
     juan: int = 1
     body_html: str = ""
+    doc_number: str = ""
     mulu: list[dict[str, str]] = field(default_factory=list)
 
 
@@ -133,6 +134,11 @@ def parse_xml(path: Path) -> ParsedText:
             except ValueError:
                 pass
             break
+
+    # Extract doc number (e.g. "No. 278 [No. 279]")
+    doc_num_el = body.find(f".//{{{CB_NS}}}docNumber")
+    if doc_num_el is not None and doc_num_el.text:
+        result.doc_number = doc_num_el.text.strip()
 
     # Extract mulu (table of contents entries)
     for mulu in body.iter(f"{{{CB_NS}}}mulu"):

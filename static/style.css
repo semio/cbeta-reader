@@ -6,6 +6,7 @@
     --fg-secondary: #666;
     --accent: #8b572a;
     --border: #e0d8cf;
+    --verse: #4a7c59;
     --font-body: "Noto Serif CJK TC", "Source Han Serif TC", "AR PL UMing TW", "HanaMinA", "HanaMinB", serif;
     --font-size: 20px;
     --line-height: 1.9;
@@ -18,6 +19,7 @@
     --fg-secondary: #999;
     --accent: #c4956a;
     --border: #333;
+    --verse: #7ab88a;
 }
 
 [data-theme="sepia"] {
@@ -26,6 +28,7 @@
     --fg-secondary: #6b5d4f;
     --accent: #8b572a;
     --border: #d4c9b0;
+    --verse: #567a4a;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -253,6 +256,13 @@ html.vertical body {
     margin-bottom: 0.3rem;
 }
 
+.reader-header .doc-number {
+    color: var(--fg-secondary);
+    font-size: 0.85rem;
+    font-family: sans-serif;
+    margin-bottom: 0.2rem;
+}
+
 .reader-header .author {
     color: var(--fg-secondary);
     font-size: 0.95rem;
@@ -285,6 +295,7 @@ h3 {
 .verse {
     margin: 1em 0;
     padding-left: 2em;
+    color: var(--verse);
 }
 
 .verse-line {
