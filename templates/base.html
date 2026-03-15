@@ -2,7 +2,7 @@
 <html lang="zh-Hant" data-theme="light">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>{% block title %}CBETA Reader{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
@@ -115,6 +115,18 @@
                     if (target) target.scrollIntoView();
                 });
             }
+        }
+
+
+        // Adjust button positions for mobile URL bar
+        if (window.visualViewport) {
+            function updateBtnBottom() {
+                const offset = window.innerHeight - window.visualViewport.height;
+                document.documentElement.style.setProperty('--btn-bottom',
+                    (offset + 24) + 'px');
+            }
+            window.visualViewport.addEventListener('resize', updateBtnBottom);
+            updateBtnBottom();
         }
 
         document.addEventListener('click', function(e) {

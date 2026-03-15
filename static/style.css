@@ -53,7 +53,7 @@ html.vertical body {
 .settings-toggle {
     position: fixed;
     right: 0.8rem;
-    bottom: 1.5rem;
+    bottom: var(--btn-bottom, 1.5rem);
     z-index: 150;
     background: var(--bg);
     border: 1px solid var(--border);
@@ -117,7 +117,7 @@ html.vertical body {
 
 .settings-panel .drawer-close-bottom {
     position: absolute;
-    bottom: 1.5rem;
+    bottom: var(--btn-bottom, 1.5rem);
     right: 0.8rem;
     z-index: 10;
     background: var(--bg);
@@ -398,7 +398,7 @@ h3 {
 
 .toc-sidebar .drawer-close-bottom {
     position: absolute;
-    bottom: 1.5rem;
+    bottom: var(--btn-bottom, 1.5rem);
     left: 0.8rem;
     z-index: 10;
     background: var(--bg);
@@ -466,7 +466,7 @@ h3 {
 .toc-toggle {
     position: fixed;
     left: 0.8rem;
-    bottom: 1.5rem;
+    bottom: var(--btn-bottom, 1.5rem);
     z-index: 150;
     background: var(--bg);
     border: 1px solid var(--border);
@@ -622,7 +622,7 @@ h3 {
 .bookmark-toggle {
     position: fixed;
     left: 4.5rem;
-    bottom: 1.5rem;
+    bottom: var(--btn-bottom, 1.5rem);
     z-index: 150;
     background: var(--bg);
     border: 1px solid var(--border);
@@ -686,7 +686,7 @@ h3 {
 
 .bookmark-drawer .drawer-close-bottom {
     position: absolute;
-    bottom: 1.5rem;
+    bottom: var(--btn-bottom, 1.5rem);
     left: 0.8rem;
     z-index: 10;
     background: var(--bg);
@@ -809,6 +809,16 @@ h3 {
 
 .restore-toast.visible {
     opacity: 0.85;
+}
+
+/* --- Fullscreen: ensure nothing is clipped --- */
+/* Drawer height: use dvh for mobile URL bar, fallback to vh */
+@supports (height: 100dvh) {
+    .settings-panel,
+    .toc-sidebar,
+    .bookmark-drawer {
+        height: 100dvh;
+    }
 }
 
 /* Hide width control in vertical, show height control */
