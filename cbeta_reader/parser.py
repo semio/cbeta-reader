@@ -56,6 +56,51 @@ def _get_char_map(header: etree._Element) -> dict[str, str]:
     return char_map
 
 
+def _head_content_html(el: etree._Element, char_map: dict[str, str]) -> str:
+    """Like _text_content but returns HTML, wrapping inline notes in spans."""
+    parts: list[str] = []
+    if el.text:
+        parts.append(_escape(el.text))
+    for child in el:
+        tag = etree.QName(child.tag).localname if isinstance(child.tag, str) else ""
+        if tag == "g":
+            ref = child.get("ref", "").lstrip("#")
+            parts.append(_escape(char_map.get(ref, child.text or "?")))
+        elif tag == "note":
+            if child.get("place") == "inline":
+                note_text = _text_content(child, char_map)
+                parts.append(f'<span class="inline-note">（{_escape(note_text)}）</span>')
+        elif tag == "app":
+            lem = child.find(f"{{{TEI_NS}}}lem")
+            if lem is not None:
+                parts.append(_head_content_html(lem, char_map))
+        elif tag == "rdg":
+            pass
+        elif tag == "tt":
+            for t in child:
+                t_tag = etree.QName(t.tag).localname if isinstance(t.tag, str) else ""
+                if t_tag == "t":
+                    lang = t.get(f"{{{XML_NS}}}lang", "")
+                    if lang.startswith("zh"):
+                        parts.append(_escape(_text_content(t, char_map)))
+                        if t.tail:
+                            parts.append(_escape(t.tail))
+                        break
+        elif tag in ("lb", "pb", "milestone"):
+            pass
+        elif tag == "space":
+            qty = child.get("quantity", "1")
+            try:
+                parts.append("\u3000" * int(qty))
+            except ValueError:
+                parts.append("\u3000")
+        else:
+            parts.append(_head_content_html(child, char_map))
+        if child.tail:
+            parts.append(_escape(child.tail))
+    return "".join(parts)
+
+
 def _text_content(el: etree._Element, char_map: dict[str, str]) -> str:
     """Recursively extract text from an element, resolving gaiji references."""
     parts: list[str] = []
@@ -68,8 +113,9 @@ def _text_content(el: etree._Element, char_map: dict[str, str]) -> str:
             ref = child.get("ref", "").lstrip("#")
             parts.append(char_map.get(ref, child.text or "?"))
         elif tag == "note":
-            # Skip footnotes in running text
-            pass
+            if child.get("place") == "inline":
+                parts.append(_text_content(child, char_map))
+            # Skip non-inline notes
         elif tag == "app":
             # Use lem (main reading) from critical apparatus
             lem = child.find(f"{{{TEI_NS}}}lem")
@@ -208,12 +254,16 @@ def _walk_body(
             state["pending_mulu"] = None
         else:
             parts.append("<h3>")
-        parts.append(_escape(_text_content(el, char_map)))
+        parts.append(_head_content_html(el, char_map))
         parts.append("</h3>\n")
         return
     elif tag == "p":
         _emit_pb_anchors(el, parts)
-        parts.append('<p class="body-text">')
+        has_inline_note = el.find(f"{{{TEI_NS}}}note[@place='inline']") is not None
+        if has_inline_note:
+            parts.append('<p class="inline-note">')
+        else:
+            parts.append('<p class="body-text">')
         parts.append(_escape(_text_content(el, char_map)))
         parts.append("</p>\n")
         return
@@ -237,8 +287,13 @@ def _walk_body(
         parts.append(_escape(_text_content(el, char_map)))
         parts.append("</p>\n")
         return
-    elif tag in ("note",):
-        return  # Skip notes
+    elif tag == "note":
+        if el.get("place") == "inline":
+            _emit_pb_anchors(el, parts)
+            parts.append('<span class="inline-note">')
+            parts.append(_escape(_text_content(el, char_map)))
+            parts.append("</span>")
+        return  # Skip non-inline notes
     elif tag in ("app",):
         lem = el.find(f"{{{TEI_NS}}}lem")
         if lem is not None:
