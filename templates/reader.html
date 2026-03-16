@@ -2,7 +2,6 @@
 {% block title %}{{ text.title }} — CBETA Reader{% endblock %}
 
 {% block content %}
-{% if toc %}
 <nav class="toc-sidebar" id="toc-sidebar">
     <div class="toc-header">
         <strong>目次</strong>
@@ -16,7 +15,7 @@
             <a href="{{ url_for('read_text', text_id=text_id, juan=entry.juan) }}{% if entry.anchor %}#{{ entry.anchor }}{% endif %}"
                {% if entry.juan == juan %}class="toc-active"{% endif %}>
                 {% if entry.type %}{{ entry.type }}：{% endif %}{{ entry.text }}
-                <span class="toc-juan">卷{{ entry.juan }}</span>
+                {% if entry.anchor %}<span class="toc-juan">卷{{ entry.juan }}</span>{% endif %}
             </a>
             {% if entry.children %}
                 {{ render_toc(entry.children) }}
@@ -30,7 +29,6 @@
     <button class="drawer-close-bottom" onclick="toggleToc()">←</button>
 </nav>
 <button class="toc-toggle" id="toc-toggle" onclick="toggleToc()" title="目次">目次</button>
-{% endif %}
 
 <nav class="bookmark-drawer" id="bookmark-drawer">
     <div class="bookmark-header">

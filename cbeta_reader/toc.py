@@ -35,7 +35,8 @@ def build_toc(cbeta_path: Path, href: str) -> list[TocEntry]:
     # Collect mulu entries from all juan files
     flat: list[TocEntry] = []
     seen: set[tuple[int, str]] = set()
-    for juan_file in sorted(parent_dir.glob(f"{base}_*.xml")):
+    juan_files = sorted(parent_dir.glob(f"{base}_*.xml"))
+    for juan_file in juan_files:
         parsed = parse_xml(juan_file)
         for m in parsed.mulu:
             level = int(m["level"])
@@ -54,7 +55,14 @@ def build_toc(cbeta_path: Path, href: str) -> list[TocEntry]:
                 )
             )
 
-    return _nest(flat)
+    if flat:
+        return _nest(flat)
+
+    # Fallback: generate a simple juan list
+    return [
+        TocEntry(level=1, text=f"卷{i + 1}", type="", juan=i + 1)
+        for i in range(len(juan_files))
+    ]
 
 
 def _nest(flat: list[TocEntry]) -> list[TocEntry]:
