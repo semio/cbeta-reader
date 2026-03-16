@@ -15,7 +15,7 @@ A minimal CBETA reader for Linux (CBreader doesn't support Linux).
 
 ## CBETA Data
 
-**Path:** `/home/semio/Downloads/bookcase_v098_20251216/Bookcase/CBETA`
+**Path:** `./data/Bookcase/CBETA` (relative to project root)
 
 **Structure:**
 - `simple_nav.xhtml` / `advance_nav.xhtml` / `bulei_nav.xhtml` — catalog navigation files

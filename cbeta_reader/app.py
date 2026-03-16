@@ -11,7 +11,7 @@ from .catalog import Catalog
 from .parser import parse_xml
 from .toc import build_toc
 
-CBETA_PATH = Path("/home/semio/Downloads/bookcase_v098_20251216/Bookcase/CBETA")
+CBETA_PATH = Path(__file__).resolve().parent.parent / "data" / "Bookcase" / "CBETA"
 
 app = Flask(
     __name__,
