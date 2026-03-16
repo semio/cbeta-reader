@@ -580,9 +580,13 @@ h3 {
 
 /* --- Continue reading card --- */
 .continue-reading {
-    max-width: var(--content-width);
-    margin: 1.5rem auto 0;
-    padding: 0 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.vertical .continue-reading {
+    margin-bottom: 0;
+    margin-left: 1.5rem;
+    height: fit-content;
 }
 
 .continue-reading a {
