@@ -45,6 +45,7 @@ body {
 html.vertical body {
     display: flex;
     justify-content: center;
+    align-items: center;
     min-height: 100vh;
     padding: 1rem 0;
 }
@@ -176,7 +177,7 @@ html.vertical body {
 
 /* --- Index / catalog --- */
 .catalog {
-    max-width: var(--content-width);
+    max-width: 48rem;
     margin: 2rem auto;
     padding: 0 1.5rem;
 }
@@ -187,13 +188,47 @@ html.vertical body {
     color: var(--accent);
 }
 
+.catalog-search {
+    position: relative;
+    margin-bottom: 1.2rem;
+}
+
+.catalog-search input {
+    width: 100%;
+    padding: 0.5rem 2rem 0.5rem 0.7rem;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--bg);
+    color: var(--fg);
+    font-size: 0.95rem;
+    box-sizing: border-box;
+}
+
+.catalog-search input:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+.catalog-search-clear {
+    position: absolute;
+    right: 0.4rem;
+    top: 50%;
+    transform: translateY(-50%);
+    border: none;
+    background: none;
+    color: var(--fg-secondary);
+    font-size: 1.1rem;
+    cursor: pointer;
+    padding: 0 0.3rem;
+}
+
 .catalog details {
-    margin-bottom: 0.3rem;
+    margin-bottom: 0.2rem;
 }
 
 .catalog summary {
     cursor: pointer;
-    padding: 0.3rem 0;
+    padding: 0.15rem 0;
     font-weight: 600;
     color: var(--fg);
     list-style: none;
@@ -208,21 +243,14 @@ html.vertical body {
     content: "▾ ";
 }
 
-.vertical .catalog summary::before {
-    content: "▾ ";
-}
-
-.vertical .catalog details[open] > summary::before {
-    content: "◂ ";
-}
 
 .catalog ul {
     list-style: none;
-    padding-left: 1.2rem;
+    padding-left: 0.8rem;
 }
 
 .catalog li {
-    padding: 0.15rem 0;
+    padding: 0.1rem 0;
 }
 
 .catalog a {
@@ -569,24 +597,11 @@ h3 {
     gap: 0.5rem;
 }
 
-.vertical .catalog {
-    writing-mode: vertical-rl;
-    max-width: none;
-    height: var(--content-height, 80vh);
-    overflow-x: auto;
-    overflow-y: hidden;
-    margin: auto;
-}
+
 
 /* --- Continue reading card --- */
 .continue-reading {
     margin-bottom: 1.5rem;
-}
-
-.vertical .continue-reading {
-    margin-bottom: 0;
-    margin-left: 1.5rem;
-    height: fit-content;
 }
 
 .continue-reading a {
