@@ -264,6 +264,12 @@ html.vertical body {
     border-bottom-color: var(--accent);
 }
 
+.catalog .text-meta {
+    color: var(--fg);
+    opacity: 0.45;
+    font-size: 0.75em;
+}
+
 /* --- Reader --- */
 .reader {
     max-width: var(--content-width);

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
+from xml.etree import ElementTree as ET
 
 from flask import Flask, render_template, abort
 
@@ -21,6 +22,38 @@ app = Flask(
 catalog = Catalog(CBETA_PATH)
 
 app.jinja_env.globals["href_to_id_juan"] = lambda href: _href_to_id_juan(href)
+app.jinja_env.globals["get_text_meta"] = lambda href: _get_text_meta(href)
+
+
+_meta_cache: dict[str, tuple[str, str]] = {}
+
+
+def _get_text_meta(href: str) -> tuple[str, str]:
+    """Extract (extent, author) from the XML header."""
+    stem = Path(href).stem
+    base = re.sub(r"_\d+$", "", stem)
+    if base in _meta_cache:
+        return _meta_cache[base]
+    first_juan = re.sub(r"_\d+\.xml$", "_001.xml", href)
+    xml_path = CBETA_PATH / first_juan
+    if not xml_path.exists():
+        _meta_cache[base] = ("", "")
+        return ("", "")
+    extent = ""
+    author = ""
+    try:
+        for _, elem in ET.iterparse(xml_path, events=("end",)):
+            tag = elem.tag.split("}")[-1] if "}" in elem.tag else elem.tag
+            if tag == "extent" and not extent:
+                extent = (elem.text or "").strip()
+            elif tag == "author" and not author:
+                author = (elem.text or "").strip()
+            if tag == "fileDesc":
+                break
+    except ET.ParseError:
+        pass
+    _meta_cache[base] = (extent, author)
+    return (extent, author)
 
 
 def _href_to_xml_path(href: str) -> Path:
