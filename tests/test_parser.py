@@ -252,6 +252,15 @@ class TestBasicRendering:
         """)
         assert '<h3 id="mulu-觀因緣品">觀因緣品第一</h3>' in html
 
+    def test_mulu_anchor_before_p(self):
+        """Mulu followed by <p> instead of <head> should emit an anchor span."""
+        html = _render("""
+        <cb:mulu level="5" type="其他">1項 自性</cb:mulu>
+        <p xml:id="p1" cb:place="inline">云何意自性？</p>
+        """)
+        assert '<span class="mulu-anchor" id="mulu-1項 自性"></span>' in html
+        assert "云何意自性？" in html
+
     def test_head_without_mulu(self):
         html = _render("<head>長阿含經序</head>")
         assert "<h3>長阿含經序</h3>" in html

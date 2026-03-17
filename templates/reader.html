@@ -4,7 +4,7 @@
 {% block content %}
 <nav class="toc-sidebar" id="toc-sidebar">
     <div class="toc-header">
-        <strong>目次</strong>
+        <strong>{{ text.title }}</strong>
         <button class="toc-close" onclick="toggleToc()">&times;</button>
     </div>
     <div class="toc-body">
@@ -14,7 +14,7 @@
         <li>
             <a href="{{ url_for('read_text', text_id=text_id, juan=entry.juan) }}{% if entry.anchor %}#{{ entry.anchor }}{% endif %}"
                {% if entry.juan == juan %}class="toc-active"{% endif %}>
-                {% if entry.type %}{{ entry.type }}：{% endif %}{{ entry.text }}
+                {{ entry.text }}
                 {% if entry.anchor %}<span class="toc-juan">卷{{ entry.juan }}</span>{% endif %}
             </a>
             {% if entry.children %}

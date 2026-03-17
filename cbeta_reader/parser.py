@@ -229,6 +229,12 @@ def _walk_body(
 ) -> None:
     tag = etree.QName(el.tag).localname if isinstance(el.tag, str) else ""
 
+    # Emit pending mulu anchor before any block-level element (when not consumed by <head>)
+    if tag in ("p", "lg", "l", "byline", "item", "list") and state.get("pending_mulu"):
+        anchor_id = _escape_attr(str(state["pending_mulu"]))
+        parts.append(f'<span class="mulu-anchor" id="mulu-{anchor_id}"></span>')
+        state["pending_mulu"] = None
+
     if tag == "lb":
         return
     elif tag == "pb":

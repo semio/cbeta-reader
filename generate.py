@@ -15,7 +15,7 @@ import time
 from multiprocessing import Pool, cpu_count
 from pathlib import Path
 
-from cbeta_reader.app import CBETA_PATH, app
+from cbeta_reader.app import CBETA_PATH, app, catalog
 
 OUTPUT_DIR = Path("dist")
 XML_DIR = CBETA_PATH / "XML"
@@ -51,6 +51,31 @@ def render_route(route: str) -> str:
             return f"OK {route} ({len(data) // 1024} KB)"
         except Exception as e:
             return f"ERR {route}: {e}"
+
+
+def _collection_code(nav_category) -> str | None:
+    """Extract the collection code (e.g. 'T') from the first link in a nav category."""
+    for item in nav_category.children:
+        if hasattr(item, "href"):
+            parts = item.href.split("/")
+            return parts[1] if len(parts) > 1 else None
+        if hasattr(item, "children"):
+            result = _collection_code(item)
+            if result:
+                return result
+    return None
+
+
+def _generate_index(out: Path, collections: list[str]) -> None:
+    """Generate index.html filtered to only the selected collections."""
+    nav = catalog.load_nav()
+    filtered = [c for c in nav if _collection_code(c) in collections]
+    with app.test_request_context("/"):
+        from flask import render_template
+
+        html = render_template("index.html", collections=filtered)
+        (out / "index.html").write_text(html)
+    print(f"Generated index.html ({len(filtered)} collections)")
 
 
 def main() -> None:
@@ -96,11 +121,8 @@ def main() -> None:
     static_src = Path(__file__).parent / "static"
     shutil.copytree(static_src, out / "static")
 
-    # Generate index page
-    with app.test_client() as client:
-        resp = client.get("/")
-        (out / "index.html").write_bytes(resp.data)
-    print("Generated index.html")
+    # Generate index page (filtered to selected collections)
+    _generate_index(out, collections)
 
     # Collect routes for selected collections
     routes = []
