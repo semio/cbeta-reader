@@ -40,23 +40,27 @@ def _get_char_map(header: etree._Element) -> dict[str, str]:
                     except ValueError:
                         pass
                 break
-        # Fallback to normalized form
+        # Fallback to normalized form, then composition
         if char_id not in char_map:
+            normalized = ""
+            composition = ""
             for prop in char.findall(f"{{{TEI_NS}}}charProp"):
                 name_el = prop.find(f"{{{TEI_NS}}}localName")
                 val_el = prop.find(f"{{{TEI_NS}}}value")
-                if (
-                    name_el is not None
-                    and name_el.text == "normalized form"
-                    and val_el is not None
-                    and val_el.text
-                ):
-                    char_map[char_id] = val_el.text
-                    break
+                if name_el is None or val_el is None or not val_el.text:
+                    continue
+                if name_el.text == "normalized form":
+                    normalized = val_el.text
+                elif name_el.text == "composition":
+                    composition = val_el.text
+            if normalized:
+                char_map[char_id] = normalized
+            elif composition:
+                char_map[char_id] = composition
     return char_map
 
 
-def _head_content_html(el: etree._Element, char_map: dict[str, str]) -> str:
+def _content_html(el: etree._Element, char_map: dict[str, str]) -> str:
     """Like _text_content but returns HTML, wrapping inline notes in spans."""
     parts: list[str] = []
     if el.text:
@@ -73,7 +77,7 @@ def _head_content_html(el: etree._Element, char_map: dict[str, str]) -> str:
         elif tag == "app":
             lem = child.find(f"{{{TEI_NS}}}lem")
             if lem is not None:
-                parts.append(_head_content_html(lem, char_map))
+                parts.append(_content_html(lem, char_map))
         elif tag == "rdg":
             pass
         elif tag == "tt":
@@ -95,7 +99,7 @@ def _head_content_html(el: etree._Element, char_map: dict[str, str]) -> str:
             except ValueError:
                 parts.append("\u3000")
         else:
-            parts.append(_head_content_html(child, char_map))
+            parts.append(_content_html(child, char_map))
         if child.tail:
             parts.append(_escape(child.tail))
     return "".join(parts)
@@ -254,17 +258,17 @@ def _walk_body(
             state["pending_mulu"] = None
         else:
             parts.append("<h3>")
-        parts.append(_head_content_html(el, char_map))
+        parts.append(_content_html(el, char_map))
         parts.append("</h3>\n")
         return
     elif tag == "p":
         _emit_pb_anchors(el, parts)
-        has_inline_note = el.find(f"{{{TEI_NS}}}note[@place='inline']") is not None
-        if has_inline_note:
+        cb_place = el.get(f"{{{CB_NS}}}place", "")
+        if cb_place == "inline" and el.find(f"{{{TEI_NS}}}note[@place='inline']") is not None:
             parts.append('<p class="inline-note">')
         else:
             parts.append('<p class="body-text">')
-        parts.append(_escape(_text_content(el, char_map)))
+        parts.append(_content_html(el, char_map))
         parts.append("</p>\n")
         return
     elif tag in ("byline",):
@@ -284,7 +288,7 @@ def _walk_body(
     elif tag == "l":
         _emit_pb_anchors(el, parts)
         parts.append('<p class="verse-line">')
-        parts.append(_escape(_text_content(el, char_map)))
+        parts.append(_content_html(el, char_map))
         parts.append("</p>\n")
         return
     elif tag == "note":
@@ -322,8 +326,8 @@ def _walk_body(
         if el.tail and el.tail.strip():
             parts.append(_escape(el.tail))
         return
-    elif tag == "docNumber":
-        return  # Skip "No. X" markers
+    elif tag in ("docNumber", "jhead", "jfoot", "juan"):
+        return  # Skip redundant structural markers
     elif tag == "div":
         for child in el:
             _walk_body(child, char_map, parts, state)

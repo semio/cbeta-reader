@@ -1,0 +1,146 @@
+"""Generate static HTML pages from the Flask app.
+
+Usage:
+    uv run python generate.py                # all collections
+    uv run python generate.py T              # just T (大正新脩大藏經)
+    uv run python generate.py T X            # T and X collections
+    uv run python generate.py --list         # list available collections
+"""
+
+import argparse
+import glob
+import re
+import shutil
+import time
+from multiprocessing import Pool, cpu_count
+from pathlib import Path
+
+from cbeta_reader.app import CBETA_PATH, app
+
+OUTPUT_DIR = Path("dist")
+XML_DIR = CBETA_PATH / "XML"
+
+
+def list_collections() -> list[str]:
+    """List available collection codes from the XML directory."""
+    return sorted(p.name for p in XML_DIR.iterdir() if p.is_dir())
+
+
+def _xml_to_route(xml_path: str) -> str | None:
+    """Convert XML path to route, e.g. '.../T01n0001_003.xml' -> '/read/T01n0001/3'."""
+    stem = Path(xml_path).stem
+    m = re.match(r"(.+)_(\d+)$", stem)
+    if not m:
+        return None
+    text_id = m.group(1)
+    juan = int(m.group(2))
+    return f"/read/{text_id}/{juan}"
+
+
+def render_route(route: str) -> str:
+    """Render a single route and write to disk. Returns status message."""
+    with app.test_request_context(route):
+        try:
+            resp = app.full_dispatch_request()
+            if resp.status_code != 200:
+                return f"SKIP {route} (status {resp.status_code})"
+            page_dir = OUTPUT_DIR / route.lstrip("/")
+            page_dir.mkdir(parents=True, exist_ok=True)
+            data = resp.get_data()
+            (page_dir / "index.html").write_bytes(data)
+            return f"OK {route} ({len(data) // 1024} KB)"
+        except Exception as e:
+            return f"ERR {route}: {e}"
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Generate static CBETA Reader pages")
+    parser.add_argument(
+        "collections",
+        nargs="*",
+        help="Collection codes to generate (e.g. T X). Omit for all.",
+    )
+    parser.add_argument(
+        "--list", action="store_true", help="List available collections and exit"
+    )
+    parser.add_argument(
+        "-o", "--output", default="dist", help="Output directory (default: dist)"
+    )
+    args = parser.parse_args()
+
+    available = list_collections()
+
+    if args.list:
+        print(f"Available collections ({len(available)}):")
+        for c in available:
+            count = len(glob.glob(str(XML_DIR / c / "**/*.xml"), recursive=True))
+            print(f"  {c:4s}  {count:>5d} pages")
+        return
+
+    global OUTPUT_DIR
+    OUTPUT_DIR = Path(args.output)
+
+    collections = args.collections or available
+    unknown = [c for c in collections if c not in available]
+    if unknown:
+        print(f"Unknown collections: {', '.join(unknown)}")
+        print(f"Available: {', '.join(available)}")
+        return
+
+    out = OUTPUT_DIR
+    if out.exists():
+        shutil.rmtree(out)
+    out.mkdir(parents=True)
+
+    # Copy static files
+    static_src = Path(__file__).parent / "static"
+    shutil.copytree(static_src, out / "static")
+
+    # Generate index page
+    with app.test_client() as client:
+        resp = client.get("/")
+        (out / "index.html").write_bytes(resp.data)
+    print("Generated index.html")
+
+    # Collect routes for selected collections
+    routes = []
+    for coll in collections:
+        xml_files = sorted(
+            glob.glob(str(XML_DIR / coll / "**/*.xml"), recursive=True)
+        )
+        for f in xml_files:
+            route = _xml_to_route(f)
+            if route:
+                routes.append(route)
+        print(f"  {coll}: {len(xml_files)} pages")
+
+    print(f"Generating {len(routes)} reader pages with {cpu_count()} workers...")
+
+    t0 = time.time()
+    workers = min(cpu_count(), len(routes))
+    done = 0
+    errors = 0
+    with Pool(workers) as pool:
+        for result in pool.imap_unordered(render_route, routes, chunksize=32):
+            done += 1
+            if result.startswith("ERR") or result.startswith("SKIP"):
+                errors += 1
+                print(result)
+            if done % 500 == 0:
+                elapsed = time.time() - t0
+                rate = done / elapsed
+                eta = (len(routes) - done) / rate
+                print(f"  {done}/{len(routes)} ({rate:.0f}/s, ETA {eta:.0f}s)")
+
+    elapsed = time.time() - t0
+    total_html = sum(1 for _ in out.rglob("*.html"))
+    total_size = sum(f.stat().st_size for f in out.rglob("*") if f.is_file())
+    print(f"\nDone in {elapsed:.1f}s")
+    print(f"Total files: {total_html} HTML + static")
+    print(f"Total size: {total_size / 1024 / 1024:.0f} MB")
+    if errors:
+        print(f"Errors/skipped: {errors}")
+
+
+if __name__ == "__main__":
+    main()
