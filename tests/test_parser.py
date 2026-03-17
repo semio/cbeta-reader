@@ -191,6 +191,14 @@ class TestInlineNotes:
         """)
         assert "（一禮畢）" in html
 
+    def test_inline_place_with_text_before_note_is_body_text(self):
+        """<p cb:place="inline"> with text before the note = normal text (X02n0193 fix)."""
+        html = _render("""
+        <p xml:id="p1" cb:place="inline">佛言：「若四輩弟子<note place="inline">某甲</note>」</p>
+        """)
+        assert '<p class="body-text">' in html
+        assert "（某甲）" in html
+
     def test_non_inline_notes_skipped(self):
         """Footnotes (non-inline notes) should not appear in output."""
         html = _render("""

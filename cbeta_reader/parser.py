@@ -264,7 +264,25 @@ def _walk_body(
     elif tag == "p":
         _emit_pb_anchors(el, parts)
         cb_place = el.get(f"{{{CB_NS}}}place", "")
-        if cb_place == "inline" and el.find(f"{{{TEI_NS}}}note[@place='inline']") is not None:
+        # Commentary: cb:place="inline", note is first real child, no text before it
+        first_real = next(
+            (
+                c
+                for c in el
+                if (etree.QName(c.tag).localname if isinstance(c.tag, str) else "")
+                not in ("lb", "pb")
+            ),
+            None,
+        )
+        is_commentary = (
+            cb_place == "inline"
+            and first_real is not None
+            and (etree.QName(first_real.tag).localname if isinstance(first_real.tag, str) else "")
+            == "note"
+            and first_real.get("place") == "inline"
+            and not (el.text or "").strip()
+        )
+        if is_commentary:
             parts.append('<p class="inline-note">')
         else:
             parts.append('<p class="body-text">')
