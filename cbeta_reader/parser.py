@@ -294,9 +294,8 @@ def _walk_body(
     elif tag == "note":
         if el.get("place") == "inline":
             _emit_pb_anchors(el, parts)
-            parts.append('<span class="inline-note">')
-            parts.append(_escape(_text_content(el, char_map)))
-            parts.append("</span>")
+            note_text = _escape(_text_content(el, char_map))
+            parts.append(f'<span class="inline-note">（{note_text}）</span>')
         return  # Skip non-inline notes
     elif tag in ("app",):
         lem = el.find(f"{{{TEI_NS}}}lem")
@@ -328,9 +327,15 @@ def _walk_body(
         return
     elif tag in ("docNumber", "jhead", "jfoot", "juan"):
         return  # Skip redundant structural markers
-    elif tag == "div":
+    elif tag in ("div", "list"):
         for child in el:
             _walk_body(child, char_map, parts, state)
+        return
+    elif tag == "item":
+        _emit_pb_anchors(el, parts)
+        parts.append('<p class="body-text">')
+        parts.append(_content_html(el, char_map))
+        parts.append("</p>\n")
         return
 
     # Default: recurse into children
