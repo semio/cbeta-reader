@@ -17,3 +17,8 @@ include = ["cbeta_reader*"]
 
 [tool.ruff]
 line-length = 99
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.2",
+]
