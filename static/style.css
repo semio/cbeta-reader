@@ -1,20 +1,6 @@
 /* CBETA Reader — clean reading styles */
 
 :root {
-    --bg: #faf8f5;
-    --fg: #2c2c2c;
-    --fg-secondary: #666;
-    --accent: #8b572a;
-    --border: #e0d8cf;
-    --verse: #4a7c59;
-    --note: #7c5cbf;
-    --font-body: "Noto Serif CJK TC", "Source Han Serif TC", "AR PL UMing TW", "HanaMinA", "HanaMinB", serif;
-    --font-size: 20px;
-    --line-height: 1.9;
-    --content-width: 48rem;
-}
-
-[data-theme="modus"] {
     --bg: #fbf7f0;
     --fg: #000000;
     --fg-secondary: #595959;
@@ -22,6 +8,10 @@
     --border: #9f9690;
     --verse: #006300;
     --note: #721045;
+    --font-body: "Noto Serif CJK TC", "Source Han Serif TC", "AR PL UMing TW", "HanaMinA", "HanaMinB", serif;
+    --font-size: 20px;
+    --line-height: 1.9;
+    --content-width: 48rem;
 }
 
 [data-theme="modus-dark"] {
