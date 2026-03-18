@@ -53,29 +53,55 @@ def render_route(route: str) -> str:
             return f"ERR {route}: {e}"
 
 
-def _collection_code(nav_category) -> str | None:
-    """Extract the collection code (e.g. 'T') from the first link in a nav category."""
+def _collection_codes(nav_category) -> set[str]:
+    """Extract all collection codes (e.g. {'T'}, {'ZW', 'ZS', 'LC', 'TX'}) from a nav category."""
+    codes: set[str] = set()
     for item in nav_category.children:
         if hasattr(item, "href"):
             parts = item.href.split("/")
-            return parts[1] if len(parts) > 1 else None
+            if len(parts) > 1:
+                codes.add(parts[1])
         if hasattr(item, "children"):
-            result = _collection_code(item)
-            if result:
-                return result
-    return None
+            codes.update(_collection_codes(item))
+    return codes
 
 
 def _generate_index(out: Path, collections: list[str]) -> None:
     """Generate index.html filtered to only the selected collections."""
     nav = catalog.load_nav()
-    filtered = [c for c in nav if _collection_code(c) in collections]
+    coll_set = set(collections)
+    filtered = [c for c in nav if _collection_codes(c) & coll_set]
     with app.test_request_context("/"):
         from flask import render_template
 
         html = render_template("index.html", collections=filtered)
         (out / "index.html").write_text(html)
     print(f"Generated index.html ({len(filtered)} collections)")
+
+
+def _generate_404(out: Path) -> None:
+    """Generate a 404.html page for missing/non-generated collections."""
+    html = """\
+<!DOCTYPE html>
+<html lang="zh-Hant" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>頁面不存在 — CBETA Reader</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div style="max-width: var(--content-width); margin: 20vh auto; padding: 0 1rem; text-align: center;">
+        <h1 style="font-size: 2rem; margin-bottom: 1rem;">此頁面不存在</h1>
+        <p style="color: var(--fg-secondary); margin-bottom: 2rem;">該經典尚未收錄或尚未上傳。</p>
+        <a href="/" style="color: var(--accent);">返回首頁</a>
+    </div>
+    <script src="/static/base.js"></script>
+</body>
+</html>
+"""
+    (out / "404.html").write_text(html)
+    print("Generated 404.html")
 
 
 def main() -> None:
@@ -123,6 +149,9 @@ def main() -> None:
 
     # Generate index page (filtered to selected collections)
     _generate_index(out, collections)
+
+    # Generate 404 page for missing/non-generated collections
+    _generate_404(out)
 
     # Collect routes for selected collections
     routes = []
