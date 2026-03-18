@@ -1,4 +1,21 @@
+function buildBookmarkDrawer() {
+    const drawer = document.getElementById('bookmark-drawer');
+    if (drawer.dataset.built) return;
+    drawer.dataset.built = '1';
+    const isReader = !!document.querySelector('.reader');
+    drawer.innerHTML =
+        '<div class="bookmark-header">' +
+            '<strong>書籤</strong>' +
+            '<button class="bookmark-close" onclick="toggleBookmarks()">&times;</button>' +
+        '</div>' +
+        (isReader ? '<button class="bookmark-add-btn" id="bookmark-add" onclick="addBookmark()">＋ 加入書籤</button>' : '') +
+        '<ul class="bookmark-list" id="bookmark-list"></ul>' +
+        '<button class="drawer-close-bottom" onclick="toggleBookmarks()">→</button>';
+    renderBookmarks();
+}
+
 function toggleBookmarks() {
+    buildBookmarkDrawer();
     document.getElementById('bookmark-drawer').classList.toggle('open');
     document.getElementById('bookmark-toggle').classList.toggle('hidden');
 }
@@ -38,8 +55,6 @@ function renderBookmarks() {
             '</li>';
     }).join('');
 }
-
-renderBookmarks();
 
 document.addEventListener('click', function(e) {
     const drawer = document.getElementById('bookmark-drawer');
