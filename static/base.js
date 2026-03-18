@@ -1,4 +1,4 @@
-const themes = ['light', 'sepia', 'dark'];
+const themes = ['light', 'modus', 'sepia', 'modus-dark', 'dark'];
 let themeIdx = themes.indexOf(localStorage.getItem('theme') || 'light');
 
 function buildSettingsPanel() {

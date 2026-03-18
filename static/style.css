@@ -14,6 +14,26 @@
     --content-width: 48rem;
 }
 
+[data-theme="modus"] {
+    --bg: #fbf7f0;
+    --fg: #000000;
+    --fg-secondary: #595959;
+    --accent: #6d5000;
+    --border: #9f9690;
+    --verse: #006300;
+    --note: #721045;
+}
+
+[data-theme="modus-dark"] {
+    --bg: #0d0e1c;
+    --fg: #ffffff;
+    --fg-secondary: #989898;
+    --accent: #d2b580;
+    --border: #61647a;
+    --verse: #88ca9f;
+    --note: #caa6df;
+}
+
 [data-theme="dark"] {
     --bg: #1a1a1a;
     --fg: #d4d0c8;
