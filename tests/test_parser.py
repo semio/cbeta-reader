@@ -45,7 +45,8 @@ class TestCharMap:
         </charDecl></encodingDesc>
         """)
         cm = _get_char_map(header)
-        assert cm["CB00501"] == "\u4B6E"
+        assert cm["CB00501"][0] == "\u4b6e"
+        assert cm["CB00501"][1] == ""  # no composition
 
     def test_normalized_form_fallback(self):
         header = _make_header("""
@@ -59,7 +60,7 @@ class TestCharMap:
         </charDecl></encodingDesc>
         """)
         cm = _get_char_map(header)
-        assert cm["CB00100"] == "塔"
+        assert cm["CB00100"][0] == "塔"
 
     def test_composition_fallback(self):
         """Chars with only a composition (like CB02253) should use it as fallback."""
@@ -75,7 +76,8 @@ class TestCharMap:
         </charDecl></encodingDesc>
         """)
         cm = _get_char_map(header)
-        assert cm["CB02253"] == "[口*(黍-禾+利)]"
+        assert cm["CB02253"][0] == "[口*(黍-禾+利)]"
+        assert cm["CB02253"][1] == "[口*(黍-禾+利)]"
 
     def test_unicode_preferred_over_composition(self):
         header = _make_header("""
@@ -90,7 +92,39 @@ class TestCharMap:
         </charDecl></encodingDesc>
         """)
         cm = _get_char_map(header)
-        assert cm["CB00501"] == "\u4B6E"
+        assert cm["CB00501"][0] == "\u4b6e"
+        assert cm["CB00501"][1] == "[some+comp]"
+
+    def test_normal_unicode_mapping(self):
+        """Chars with type='normal_unicode' (e.g. CB14694) should resolve."""
+        header = _make_header("""
+        <encodingDesc><charDecl>
+            <char xml:id="CB14694">
+                <charProp>
+                    <localName>composition</localName>
+                    <value>[胎-ㄙ+口]</value>
+                </charProp>
+                <mapping type="normal_unicode">U+266D7</mapping>
+                <mapping cb:dec="997734" type="PUA">U+F3966</mapping>
+            </char>
+        </charDecl></encodingDesc>
+        """)
+        cm = _get_char_map(header)
+        assert cm["CB14694"][0] == "\U000266D7"
+        assert cm["CB14694"][1] == "[胎-ㄙ+口]"
+
+    def test_pua_skipped_normal_unicode_found(self):
+        """PUA mapping should be skipped, normal_unicode should be used."""
+        header = _make_header("""
+        <encodingDesc><charDecl>
+            <char xml:id="CB99999">
+                <mapping cb:dec="999999" type="PUA">U+F4240</mapping>
+                <mapping type="normal_unicode">U+4E00</mapping>
+            </char>
+        </charDecl></encodingDesc>
+        """)
+        cm = _get_char_map(header)
+        assert cm["CB99999"][0] == "\u4E00"
 
     def test_missing_char_renders_question_mark(self):
         body = _make_body('<p xml:id="p1">text<g ref="#MISSING"/>more</p>')
@@ -115,7 +149,7 @@ class TestSkipRedundantElements:
         assert "唐慎水沙門玄覺撰" in html
 
     def test_jfoot_skipped(self):
-        html = _render('<cb:jfoot>永嘉證道歌終</cb:jfoot>')
+        html = _render("<cb:jfoot>永嘉證道歌終</cb:jfoot>")
         assert "永嘉證道歌終" not in html
 
     def test_juan_element_skipped(self):
@@ -261,6 +295,18 @@ class TestBasicRendering:
         assert '<span class="mulu-anchor" id="mulu-1項 自性"></span>' in html
         assert "云何意自性？" in html
 
+    def test_mulu_before_div_with_nested_mulu(self):
+        """Mulu followed by a div containing another mulu should not lose the outer anchor."""
+        html = _render("""
+        <cb:mulu level="4" type="其他">1節 別識八門</cb:mulu>
+        <div>
+            <cb:mulu level="5" type="其他">1項 色聚</cb:mulu>
+            <p xml:id="p1">復次，即前所說</p>
+        </div>
+        """)
+        assert 'id="mulu-1節 別識八門"' in html
+        assert 'id="mulu-1項 色聚"' in html
+
     def test_head_without_mulu(self):
         html = _render("<head>長阿含經序</head>")
         assert "<h3>長阿含經序</h3>" in html
@@ -268,9 +314,18 @@ class TestBasicRendering:
     def test_gaiji_resolved(self):
         html = _render(
             '<p xml:id="p1">text<g ref="#CB00501"/>more</p>',
-            char_map={"CB00501": "䭾"},
+            char_map={"CB00501": ("䭾", "[食+庸]")},
+        )
+        assert "䭾" in html
+        assert 'data-comp="[食+庸]"' in html
+
+    def test_gaiji_no_composition_no_span(self):
+        html = _render(
+            '<p xml:id="p1">text<g ref="#CB00501"/>more</p>',
+            char_map={"CB00501": ("䭾", "")},
         )
         assert "text䭾more" in html
+        assert "gaiji" not in html
 
     def test_critical_apparatus_uses_lem(self):
         html = _render("""
@@ -283,7 +338,7 @@ class TestBasicRendering:
         assert "異文" not in html
 
     def test_docnumber_skipped(self):
-        html = _render('<cb:docNumber>No. 278</cb:docNumber>')
+        html = _render("<cb:docNumber>No. 278</cb:docNumber>")
         assert "No. 278" not in html
 
     def test_space_element(self):
@@ -331,10 +386,11 @@ class TestIntegration:
         assert '<span class="inline-note">（上）</span>' in result.body_html
 
     def test_t12n0369_composition_char(self):
-        """T12n0369: rare char CB02253 should render as composition, not '?'."""
+        """T12n0369: rare char CB02253 should render as composition with tooltip."""
         result = self._parse("T/T12/T12n0369_001.xml")
         assert "?" not in result.body_html
         assert "[口*(黍-禾+利)]" in result.body_html
+        assert 'class="gaiji"' in result.body_html
 
     def test_d13n8838_commentary_styled(self):
         """D13n8838: commentary paragraphs should be inline-note class."""

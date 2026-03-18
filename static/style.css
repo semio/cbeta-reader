@@ -823,6 +823,27 @@ span.inline-note {
     font-size: 0.85rem;
 }
 
+/* --- Gaiji (rare characters) --- */
+.gaiji {
+    border-bottom: 1px dotted var(--fg-secondary);
+    cursor: help;
+}
+
+.gaiji-tooltip {
+    position: fixed;
+    background: var(--fg);
+    color: var(--bg);
+    padding: 1px 5px;
+    border-radius: 2px;
+    font-size: 12px;
+    line-height: 1.4;
+    font-family: sans-serif;
+    white-space: nowrap;
+    writing-mode: horizontal-tb;
+    z-index: 300;
+    pointer-events: none;
+}
+
 /* --- Page break anchors --- */
 .pb {
     display: block;

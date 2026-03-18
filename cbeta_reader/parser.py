@@ -24,52 +24,71 @@ class ParsedText:
     mulu: list[dict[str, str]] = field(default_factory=list)
 
 
-def _get_char_map(header: etree._Element) -> dict[str, str]:
-    """Build a map from char ID -> unicode character from charDecl."""
-    char_map: dict[str, str] = {}
+def _get_char_map(header: etree._Element) -> dict[str, tuple[str, str]]:
+    """Build a map from char ID -> (display_char, composition).
+
+    display_char is the best available rendering (Unicode > normalized > composition).
+    composition is the compositional description (e.g. "[月*庸]") for tooltips,
+    or empty string if unavailable.
+    """
+    char_map: dict[str, tuple[str, str]] = {}
     for char in header.iter(f"{{{TEI_NS}}}char"):
         char_id = char.get(f"{{{XML_NS}}}id", "")
-        # Prefer unicode mapping
+        unicode_char = ""
+        normalized = ""
+        composition = ""
+        # Try unicode mapping
         for mapping in char.findall(f"{{{TEI_NS}}}mapping"):
             mtype = mapping.get("type", "")
-            if mtype == "unicode" and mapping.text:
+            if mtype in ("unicode", "normal_unicode") and mapping.text:
                 code = mapping.text.strip()
                 if code.startswith("U+"):
                     try:
-                        char_map[char_id] = chr(int(code[2:], 16))
+                        unicode_char = chr(int(code[2:], 16))
                     except ValueError:
                         pass
-                break
-        # Fallback to normalized form, then composition
-        if char_id not in char_map:
-            normalized = ""
-            composition = ""
-            for prop in char.findall(f"{{{TEI_NS}}}charProp"):
-                name_el = prop.find(f"{{{TEI_NS}}}localName")
-                val_el = prop.find(f"{{{TEI_NS}}}value")
-                if name_el is None or val_el is None or not val_el.text:
-                    continue
-                if name_el.text == "normalized form":
-                    normalized = val_el.text
-                elif name_el.text == "composition":
-                    composition = val_el.text
-            if normalized:
-                char_map[char_id] = normalized
-            elif composition:
-                char_map[char_id] = composition
+                    break
+        # Extract normalized form and composition from charProp
+        for prop in char.findall(f"{{{TEI_NS}}}charProp"):
+            name_el = prop.find(f"{{{TEI_NS}}}localName")
+            val_el = prop.find(f"{{{TEI_NS}}}value")
+            if name_el is None or val_el is None or not val_el.text:
+                continue
+            if name_el.text == "normalized form":
+                normalized = val_el.text
+            elif name_el.text == "composition":
+                composition = val_el.text
+        # Pick best display char; always keep composition for tooltip
+        if unicode_char:
+            char_map[char_id] = (unicode_char, composition)
+        elif normalized:
+            char_map[char_id] = (normalized, composition)
+        elif composition:
+            char_map[char_id] = (composition, composition)
     return char_map
 
 
-def _content_html(el: etree._Element, char_map: dict[str, str]) -> str:
+def _content_html(el: etree._Element, char_map: dict[str, tuple[str, str]]) -> str:
     """Like _text_content but returns HTML, wrapping inline notes in spans."""
     parts: list[str] = []
     if el.text:
-        parts.append(_escape(el.text))
+        parts.append(_escape(el.text.replace("\n", "")))
     for child in el:
         tag = etree.QName(child.tag).localname if isinstance(child.tag, str) else ""
         if tag == "g":
             ref = child.get("ref", "").lstrip("#")
-            parts.append(_escape(char_map.get(ref, child.text or "?")))
+            entry = char_map.get(ref)
+            if entry:
+                display, comp = entry
+                if comp:
+                    parts.append(
+                        f'<span class="gaiji" data-comp="{_escape_attr(comp)}">'
+                        f"{_escape(display)}</span>"
+                    )
+                else:
+                    parts.append(_escape(display))
+            else:
+                parts.append(_escape(child.text or "?"))
         elif tag == "note":
             if child.get("place") == "inline":
                 note_text = _text_content(child, char_map)
@@ -101,21 +120,22 @@ def _content_html(el: etree._Element, char_map: dict[str, str]) -> str:
         else:
             parts.append(_content_html(child, char_map))
         if child.tail:
-            parts.append(_escape(child.tail))
+            parts.append(_escape(child.tail.replace("\n", "")))
     return "".join(parts)
 
 
-def _text_content(el: etree._Element, char_map: dict[str, str]) -> str:
+def _text_content(el: etree._Element, char_map: dict[str, tuple[str, str]]) -> str:
     """Recursively extract text from an element, resolving gaiji references."""
     parts: list[str] = []
     if el.text:
-        parts.append(el.text)
+        parts.append(el.text.replace("\n", ""))
     for child in el:
         tag = etree.QName(child.tag).localname if isinstance(child.tag, str) else ""
         if tag == "g":
             # Gaiji reference like <g ref="#CB00166"/>
             ref = child.get("ref", "").lstrip("#")
-            parts.append(char_map.get(ref, child.text or "?"))
+            entry = char_map.get(ref)
+            parts.append(entry[0] if entry else (child.text or "?"))
         elif tag == "note":
             if child.get("place") == "inline":
                 parts.append(_text_content(child, char_map))
@@ -136,7 +156,7 @@ def _text_content(el: etree._Element, char_map: dict[str, str]) -> str:
                     if lang.startswith("zh"):
                         parts.append(_text_content(t, char_map))
                         if t.tail:
-                            parts.append(t.tail)
+                            parts.append(t.tail.replace("\n", ""))
                         break
         elif tag in ("lb", "pb", "milestone"):
             pass  # Skip structural markers
@@ -149,7 +169,7 @@ def _text_content(el: etree._Element, char_map: dict[str, str]) -> str:
         else:
             parts.append(_text_content(child, char_map))
         if child.tail:
-            parts.append(child.tail)
+            parts.append(child.tail.replace("\n", ""))
     return "".join(parts)
 
 
@@ -161,15 +181,14 @@ def parse_xml(path: Path) -> ParsedText:
 
     # Extract metadata from header
     header = root.find(f"{{{TEI_NS}}}teiHeader")
+    char_map = _get_char_map(header) if header is not None else {}
     if header is not None:
         title_el = header.find(f".//{{{TEI_NS}}}title[@level='m']")
         if title_el is not None:
             result.title = title_el.text or ""
         author_el = header.find(f".//{{{TEI_NS}}}author")
         if author_el is not None:
-            result.author = _text_content(author_el, {})
-
-    char_map = _get_char_map(header) if header is not None else {}
+            result.author = _text_content(author_el, char_map)
 
     # Extract body
     body = root.find(f".//{{{TEI_NS}}}body")
@@ -203,7 +222,7 @@ def parse_xml(path: Path) -> ParsedText:
     return result
 
 
-def _body_to_html(body: etree._Element, char_map: dict[str, str]) -> str:
+def _body_to_html(body: etree._Element, char_map: dict[str, tuple[str, str]]) -> str:
     """Convert TEI body to clean HTML."""
     parts: list[str] = []
     state: dict[str, str | None] = {"pending_mulu": None}
@@ -223,7 +242,7 @@ def _emit_pb_anchors(el: etree._Element, parts: list[str]) -> None:
 
 def _walk_body(
     el: etree._Element,
-    char_map: dict[str, str],
+    char_map: dict[str, tuple[str, str]],
     parts: list[str],
     state: dict[str, str | None],
 ) -> None:
@@ -243,9 +262,13 @@ def _walk_body(
             parts.append(f'<span class="pb" id="{_escape_attr(xml_id)}"></span>')
         return
     elif tag == "mulu":
-        # Track mulu text so the next <head> gets an anchor
+        # Track mulu text so the next block element or <head> gets an anchor
         text = el.text or ""
         if text:
+            # Emit any unconsumed pending mulu before overwriting
+            if state.get("pending_mulu"):
+                anchor_id = _escape_attr(str(state["pending_mulu"]))
+                parts.append(f'<span class="mulu-anchor" id="mulu-{anchor_id}"></span>')
             state["pending_mulu"] = text
         for child in el:
             _walk_body(child, char_map, parts, state)
