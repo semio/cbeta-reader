@@ -11,7 +11,7 @@ function buildSettingsPanel() {
             <button class="settings-close" onclick="toggleSettings()">&times;</button>
         </div>
         <div class="settings-body">
-            <a href="/" class="settings-home">← 目錄</a>
+            <a href="/" class="settings-home">← 返回首頁</a>
             <label>字體
                 <select id="font-family" onchange="setFont(this.value)">
                     <option value='"Noto Serif CJK TC", "Source Han Serif TC", "HanaMinA", "HanaMinB", serif'>思源宋體</option>
