@@ -1,6 +1,61 @@
 const themes = ['light', 'sepia', 'dark'];
 let themeIdx = themes.indexOf(localStorage.getItem('theme') || 'light');
 
+function buildSettingsPanel() {
+    const panel = document.getElementById('settings-panel');
+    if (panel.dataset.built) return;
+    panel.dataset.built = '1';
+    panel.innerHTML = `
+        <div class="settings-header">
+            <strong>設定</strong>
+            <button class="settings-close" onclick="toggleSettings()">&times;</button>
+        </div>
+        <div class="settings-body">
+            <a href="/" class="settings-home">← 目錄</a>
+            <label>字體
+                <select id="font-family" onchange="setFont(this.value)">
+                    <option value='"Noto Serif CJK TC", "Source Han Serif TC", "HanaMinA", "HanaMinB", serif'>思源宋體</option>
+                    <option value='"Noto Sans CJK TC", "Source Han Sans TC", "HanaMinA", "HanaMinB", sans-serif'>思源黑體</option>
+                    <option value='"FZPingXianYaSong-R-GBK", "HanaMinA", "HanaMinB", serif'>方正屏显宋</option>
+                    <option value='"Fusion Kai T", "HanaMinA", "HanaMinB", serif'>缝合楷</option>
+                    <option value='serif'>系統襯線</option>
+                    <option value='sans-serif'>系統無襯線</option>
+                </select>
+            </label>
+            <label>大小
+                <input type="range" id="font-size" min="16" max="32" value="20" onchange="setSize(this.value)">
+            </label>
+            <label class="width-control">版寬
+                <input type="range" id="content-width" min="30" max="80" value="48" onchange="setWidth(this.value)">
+            </label>
+            <label class="height-control">版高
+                <input type="range" id="content-height" min="50" max="95" value="80" onchange="setHeight(this.value)">
+            </label>
+            <div class="settings-buttons">
+                <button class="theme-btn" id="vertical-btn" onclick="toggleVertical()">直排</button>
+                <button class="theme-btn" onclick="cycleTheme()">主題</button>
+            </div>
+        </div>
+        <button class="drawer-close-bottom" onclick="toggleSettings()">→</button>`;
+    syncSettingsUI();
+}
+
+function syncSettingsUI() {
+    const font = localStorage.getItem('fontFamily') || '"Noto Serif CJK TC", serif';
+    const size = localStorage.getItem('fontSize') || '20';
+    const width = localStorage.getItem('contentWidth') || '48';
+    const height = localStorage.getItem('contentHeight') || '80';
+    const vertical = localStorage.getItem('vertical') === 'true';
+    document.getElementById('font-size').value = size;
+    document.getElementById('content-width').value = width;
+    document.getElementById('content-height').value = height;
+    document.getElementById('vertical-btn').textContent = vertical ? '橫排' : '直排';
+    const sel = document.getElementById('font-family');
+    for (let opt of sel.options) {
+        if (opt.value === font) { opt.selected = true; break; }
+    }
+}
+
 function applySettings() {
     const theme = localStorage.getItem('theme') || 'light';
     const font = localStorage.getItem('fontFamily') || '"Noto Serif CJK TC", serif';
@@ -13,18 +68,11 @@ function applySettings() {
     document.body.style.fontSize = size + 'px';
     document.documentElement.style.setProperty('--content-width', width + 'rem');
     document.documentElement.style.setProperty('--content-height', height + 'vh');
-    document.getElementById('font-size').value = size;
-    document.getElementById('content-width').value = width;
-    document.getElementById('content-height').value = height;
     if (vertical) document.documentElement.classList.add('vertical');
-    document.getElementById('vertical-btn').textContent = vertical ? '橫排' : '直排';
-    const sel = document.getElementById('font-family');
-    for (let opt of sel.options) {
-        if (opt.value === font) { opt.selected = true; break; }
-    }
 }
 
 function toggleSettings() {
+    buildSettingsPanel();
     document.getElementById('settings-panel').classList.toggle('open');
     document.getElementById('settings-toggle').classList.toggle('hidden');
 }

@@ -8,39 +8,7 @@
 </head>
 <body>
     <button class="settings-toggle" id="settings-toggle" onclick="toggleSettings()">設定</button>
-    <div class="settings-panel" id="settings-panel">
-        <div class="settings-header">
-            <strong>設定</strong>
-            <button class="settings-close" onclick="toggleSettings()">&times;</button>
-        </div>
-        <div class="settings-body">
-            <a href="{{ url_for('index') }}" class="settings-home">← 目錄</a>
-            <label>字體
-                <select id="font-family" onchange="setFont(this.value)">
-                    <option value='"Noto Serif CJK TC", "Source Han Serif TC", "HanaMinA", "HanaMinB", serif'>思源宋體</option>
-                    <option value='"Noto Sans CJK TC", "Source Han Sans TC", "HanaMinA", "HanaMinB", sans-serif'>思源黑體</option>
-                    <option value='"FZPingXianYaSong-R-GBK", "HanaMinA", "HanaMinB", serif'>方正屏显宋</option>
-                    <option value='"Fusion Kai T", "HanaMinA", "HanaMinB", serif'>缝合楷</option>
-                    <option value='serif'>系統襯線</option>
-                    <option value='sans-serif'>系統無襯線</option>
-                </select>
-            </label>
-            <label>大小
-                <input type="range" id="font-size" min="16" max="32" value="20" onchange="setSize(this.value)">
-            </label>
-            <label class="width-control">版寬
-                <input type="range" id="content-width" min="30" max="80" value="48" onchange="setWidth(this.value)">
-            </label>
-            <label class="height-control">版高
-                <input type="range" id="content-height" min="50" max="95" value="80" onchange="setHeight(this.value)">
-            </label>
-            <div class="settings-buttons">
-                <button class="theme-btn" id="vertical-btn" onclick="toggleVertical()">直排</button>
-                <button class="theme-btn" onclick="cycleTheme()">主題</button>
-            </div>
-        </div>
-        <button class="drawer-close-bottom" onclick="toggleSettings()">→</button>
-    </div>
+    <div class="settings-panel" id="settings-panel"></div>
 
     {% block content %}{% endblock %}
 
