@@ -14,17 +14,11 @@ function buildSettingsPanel() {
             <a href="/" class="settings-home">← 返回首頁</a>
             <label>字體
                 <select id="font-family" onchange="setFontPreset(this.value)">
-                    <option value='"Noto Serif CJK TC", "Source Han Serif TC", "Songti TC", "Songti SC", "SimSun", "MingLiU", serif'>系統襯線</option>
-                    <option value='"Noto Sans CJK TC", "Source Han Sans TC", "PingFang TC", "PingFang SC", "Microsoft JhengHei", "Microsoft YaHei", sans-serif'>系統無襯線</option>
-                    <option value='"Noto Serif CJK TC", "Source Han Serif TC"'>思源宋體</option>
-                    <option value='"Noto Sans CJK TC", "Source Han Sans TC"'>思源黑體</option>
-                    <option value='"FZPingXianYaSong-R-GBK"'>方正屏显宋</option>
-                    <option value='"Fusion Kai T"'>缝合楷</option>
+                    <option value='serif'>瀏覽器預設</option>
+                    <option value='"Noto Serif TC"'>思源宋體</option>
+                    <option value='"Noto Sans TC"'>思源黑體</option>
+                    <option value='"LXGW WenKai Screen"'>霞鶩文楷</option>
                 </select>
-            </label>
-            <label>自訂字體
-                <input type="text" id="custom-font" placeholder="輸入字體名稱"
-                    onchange="setCustomFont(this.value)" oninput="setCustomFont(this.value)">
             </label>
             <label>大小
                 <input type="range" id="font-size" min="16" max="32" value="20" onchange="setSize(this.value)">
@@ -42,8 +36,7 @@ function buildSettingsPanel() {
             <details class="settings-about">
                 <summary>关于</summary>
                 <ul>
-                    <li>字體需已安裝於系統中方可使用。</li>
-                    <li>花園明朝（HanaMin）已設為備用字體，用於顯示罕見漢字。</li>
+                    <li>字體由網頁自動載入，無需安裝。</li>
                     <li>版寬／版高設有最小值，在較小螢幕上可能無法生效。</li>
                 </ul>
                 网站源碼：<a href="https://github.com/semio/cbeta-reader" target="_blank">GitHub</a>
@@ -54,8 +47,7 @@ function buildSettingsPanel() {
 }
 
 function syncSettingsUI() {
-    const fontPreset = localStorage.getItem('fontPreset') || '"Noto Serif CJK TC", "Source Han Serif TC", "Songti TC", "Songti SC", "SimSun", "MingLiU", serif';
-    const customFont = localStorage.getItem('customFont') || '';
+    const fontPreset = localStorage.getItem('fontPreset') || 'serif';
     const size = localStorage.getItem('fontSize') || '20';
     const width = localStorage.getItem('contentWidth') || '48';
     const height = localStorage.getItem('contentHeight') || '80';
@@ -64,22 +56,39 @@ function syncSettingsUI() {
     document.getElementById('content-width').value = width;
     document.getElementById('content-height').value = height;
     document.getElementById('vertical-btn').textContent = vertical ? '橫排' : '直排';
-    document.getElementById('custom-font').value = customFont;
     const sel = document.getElementById('font-family');
     for (let opt of sel.options) {
         if (opt.value === fontPreset) { opt.selected = true; break; }
     }
 }
 
-const FONT_FALLBACKS = '"HanaMinA", "HanaMinB", serif';
+const FONT_FALLBACKS = '"Jigmo", serif';
+
+const WEB_FONT_CSS = {
+    'Noto Serif TC': '/static/fonts/noto-serif-tc/noto-serif-tc.css',
+    'Noto Sans TC': '/static/fonts/noto-sans-tc/noto-sans-tc.css',
+    'LXGW WenKai Screen': '/static/fonts/lxgw-wenkai/lxgw-wenkai.css',
+    'Jigmo': '/static/fonts/jigmo/jigmo.css',
+};
+const _loadedFontCSS = {};
+function _loadFontCSS(name) {
+    if (_loadedFontCSS[name]) return;
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = WEB_FONT_CSS[name];
+    document.head.appendChild(link);
+    _loadedFontCSS[name] = true;
+}
+function loadWebFonts(fontFamily) {
+    for (const name of Object.keys(WEB_FONT_CSS)) {
+        if (fontFamily.includes(name)) _loadFontCSS(name);
+    }
+    _loadFontCSS('Jigmo');
+}
 
 function buildFontFamily() {
-    const customFont = localStorage.getItem('customFont') || '';
-    const fontPreset = localStorage.getItem('fontPreset') || '"Noto Serif CJK TC", "Source Han Serif TC", "Songti TC", "Songti SC", "SimSun", "MingLiU", serif';
-    const primary = customFont
-        ? customFont.split(',').map(f => '"' + f.trim().replace(/"/g, '') + '"').join(', ')
-        : fontPreset;
-    return primary + ', ' + FONT_FALLBACKS;
+    const fontPreset = localStorage.getItem('fontPreset') || 'serif';
+    return fontPreset + ', ' + FONT_FALLBACKS;
 }
 
 function applySettings() {
@@ -89,7 +98,9 @@ function applySettings() {
     const height = localStorage.getItem('contentHeight') || '80';
     const vertical = localStorage.getItem('vertical') === 'true';
     document.documentElement.dataset.theme = theme;
-    document.body.style.fontFamily = buildFontFamily();
+    const fontFamily = buildFontFamily();
+    loadWebFonts(fontFamily);
+    document.body.style.fontFamily = fontFamily;
     document.body.style.fontSize = size + 'px';
     document.documentElement.style.setProperty('--content-width', width + 'rem');
     document.documentElement.style.setProperty('--content-height', height + 'vh');
@@ -110,15 +121,9 @@ function cycleTheme() {
 
 function setFontPreset(val) {
     localStorage.setItem('fontPreset', val);
-    localStorage.removeItem('customFont');
-    document.getElementById('custom-font').value = '';
-    document.body.style.fontFamily = buildFontFamily();
-}
-
-function setCustomFont(val) {
-    const trimmed = val.trim();
-    localStorage.setItem('customFont', trimmed);
-    document.body.style.fontFamily = buildFontFamily();
+    const fontFamily = buildFontFamily();
+    loadWebFonts(fontFamily);
+    document.body.style.fontFamily = fontFamily;
 }
 
 function setSize(val) {

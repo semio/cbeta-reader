@@ -103,41 +103,6 @@ if (readerEl) readerEl.addEventListener('wheel', function(e) {
     }));
 })();
 
-/* --- Gaiji tooltip --- */
-(function() {
-    const tip = document.createElement('div');
-    tip.className = 'gaiji-tooltip';
-    tip.style.display = 'none';
-    document.body.appendChild(tip);
-
-    function show(el) {
-        const comp = el.dataset.comp;
-        if (!comp) return;
-        tip.textContent = comp;
-        tip.style.display = '';
-        const rect = el.getBoundingClientRect();
-        tip.style.left = rect.left + rect.width / 2 - tip.offsetWidth / 2 + 'px';
-        tip.style.top = rect.top - tip.offsetHeight - 2 + 'px';
-    }
-
-    function hide() {
-        tip.style.display = 'none';
-    }
-
-    // Desktop: hover
-    readerEl.addEventListener('mouseover', function(e) {
-        const g = e.target.closest('.gaiji');
-        if (g) show(g); else hide();
-    });
-    readerEl.addEventListener('mouseout', hide);
-
-    // Mobile: tap
-    readerEl.addEventListener('click', function(e) {
-        const g = e.target.closest('.gaiji');
-        if (g) { show(g); setTimeout(hide, 2000); }
-    });
-})();
-
 /* --- Bookmarks (reader-specific: addBookmark) --- */
 function addBookmark() {
     const bm = getBookmarks();
