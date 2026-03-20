@@ -14,12 +14,12 @@ function buildSettingsPanel() {
             <a href="/" class="settings-home">← 返回首頁</a>
             <label>字體
                 <select id="font-family" onchange="setFontPreset(this.value)">
+                    <option value='"Noto Serif CJK TC", "Source Han Serif TC", "Songti TC", "Songti SC", "SimSun", "MingLiU", serif'>系統襯線</option>
+                    <option value='"Noto Sans CJK TC", "Source Han Sans TC", "PingFang TC", "PingFang SC", "Microsoft JhengHei", "Microsoft YaHei", sans-serif'>系統無襯線</option>
                     <option value='"Noto Serif CJK TC", "Source Han Serif TC"'>思源宋體</option>
                     <option value='"Noto Sans CJK TC", "Source Han Sans TC"'>思源黑體</option>
                     <option value='"FZPingXianYaSong-R-GBK"'>方正屏显宋</option>
                     <option value='"Fusion Kai T"'>缝合楷</option>
-                    <option value='serif'>系統襯線</option>
-                    <option value='sans-serif'>系統無襯線</option>
                 </select>
             </label>
             <label>自訂字體
@@ -54,7 +54,7 @@ function buildSettingsPanel() {
 }
 
 function syncSettingsUI() {
-    const fontPreset = localStorage.getItem('fontPreset') || '"Noto Serif CJK TC", "Source Han Serif TC"';
+    const fontPreset = localStorage.getItem('fontPreset') || '"Noto Serif CJK TC", "Source Han Serif TC", "Songti TC", "Songti SC", "SimSun", "MingLiU", serif';
     const customFont = localStorage.getItem('customFont') || '';
     const size = localStorage.getItem('fontSize') || '20';
     const width = localStorage.getItem('contentWidth') || '48';
@@ -75,7 +75,7 @@ const FONT_FALLBACKS = '"HanaMinA", "HanaMinB", serif';
 
 function buildFontFamily() {
     const customFont = localStorage.getItem('customFont') || '';
-    const fontPreset = localStorage.getItem('fontPreset') || '"Noto Serif CJK TC", "Source Han Serif TC"';
+    const fontPreset = localStorage.getItem('fontPreset') || '"Noto Serif CJK TC", "Source Han Serif TC", "Songti TC", "Songti SC", "SimSun", "MingLiU", serif';
     const primary = customFont
         ? customFont.split(',').map(f => '"' + f.trim().replace(/"/g, '') + '"').join(', ')
         : fontPreset;
