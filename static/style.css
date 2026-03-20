@@ -649,6 +649,15 @@ span.inline-note {
     margin: 0 1.5rem 0 0.8rem;
 }
 
+.vertical .reader-header {
+    border-bottom: none;
+    border-left: 1px solid var(--border);
+    padding-bottom: 0;
+    padding-left: 1.5rem;
+    margin-bottom: 0;
+    margin-left: 2rem;
+}
+
 .vertical .byline {
     margin: 0 1rem 0 0.8rem;
 }
@@ -661,12 +670,14 @@ span.inline-note {
 .vertical .juan-nav {
     writing-mode: horizontal-tb;
     border-top: none;
-    border-left: 1px solid var(--border);
+    border-right: 1px solid var(--border);
     margin-top: 0;
-    margin-left: 2rem;
-    padding: 1rem 1.5rem;
+    margin-left: 4rem;
+    padding: 15% 1.5rem;
     flex-direction: column;
-    gap: 0.5rem;
+    justify-content: space-between;
+    height: var(--content-height, 80vh);
+    box-sizing: border-box;
 }
 
 
