@@ -639,6 +639,7 @@ span.inline-note {
     text-indent: 0;
     margin-bottom: 0;
     margin-left: 0;
+    line-height: 2.2;
 }
 
 .vertical h2.juan {
@@ -665,7 +666,7 @@ span.inline-note {
 .vertical .verse {
     padding-left: 0;
     padding-top: 2em;
-    margin: 0 1.5em;
+    margin: 0 0.5em;
 }
 
 .vertical .juan-nav {
