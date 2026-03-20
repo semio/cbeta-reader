@@ -37,10 +37,10 @@ function buildSettingsPanel() {
                 <summary>关于</summary>
                 <ul>
                     <li>CBETA版本： v098_20251216</li>
-                    <li>除瀏覽器字體需要自行安裝外，其余字體由網頁自動載入。</li>
+                    <li>默認使用瀏覽器字體，選擇其餘字體將由網頁自動載入，無需安裝。</li>
                     <li>版寬／版高設有最小值限制，在較小螢幕上更改設定可能無法生效。</li>
+                    <li>网站源碼：<a href="https://github.com/semio/cbeta-reader" target="_blank">GitHub</a>，歡迎提Issue或者<a href="mailto:semio@posteo.net">郵件交流</a></li>
                 </ul>
-                网站源碼：<a href="https://github.com/semio/cbeta-reader" target="_blank">GitHub</a>
             </details>
         </div>
         <button class="drawer-close-bottom" onclick="toggleSettings()">→</button>`;

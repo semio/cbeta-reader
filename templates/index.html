@@ -6,7 +6,7 @@
 <button class="bookmark-toggle" id="bookmark-toggle" onclick="toggleBookmarks()" title="書籤">書籤</button>
 
 <div class="catalog">
-    <div class="continue-reading" id="continue-reading" style="display:none">
+    <div class="continue-reading" id="continue-reading" style="display: none">
         <a id="continue-reading-link" href="#">
             <div class="cr-label">繼續閱讀</div>
             <div class="cr-title" id="cr-title"></div>
@@ -15,8 +15,20 @@
     </div>
     <h1>CBETA 經藏目錄</h1>
     <div class="catalog-search">
-        <input type="text" id="catalog-search" placeholder="搜尋經名或編號…" autocomplete="off">
-        <button id="catalog-search-clear" class="catalog-search-clear" style="display:none" onclick="clearSearch()">&times;</button>
+        <input
+            type="text"
+            id="catalog-search"
+            placeholder="搜尋經名，作者或編號…"
+            autocomplete="off"
+        />
+        <button
+            id="catalog-search-clear"
+            class="catalog-search-clear"
+            style="display: none"
+            onclick="clearSearch()"
+        >
+            &times;
+        </button>
     </div>
     {% for collection in collections %}
     <details>
