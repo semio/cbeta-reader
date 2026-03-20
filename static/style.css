@@ -16,7 +16,7 @@
 
 [data-theme="modus-dark"] {
     --bg: #0d0e1c;
-    --fg: #ffffff;
+    --fg: #d0d0d0;
     --fg-secondary: #989898;
     --accent: #d2b580;
     --border: #61647a;
@@ -170,9 +170,18 @@ html.vertical body {
 }
 
 .settings-body select,
-.settings-body input[type="range"] {
+.settings-body input[type="range"],
+.settings-body input[type="text"] {
     font-size: 13px;
     padding: 2px 4px;
+}
+
+.settings-body input[type="text"] {
+    background: var(--bg);
+    color: var(--fg);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 4px 6px;
 }
 
 .settings-home {
@@ -186,6 +195,37 @@ html.vertical body {
 .settings-buttons {
     display: flex;
     gap: 0.5rem;
+}
+
+.settings-about {
+    border-top: 1px solid var(--border);
+    padding-top: 0.6rem;
+    font-size: 12px;
+    color: var(--fg-secondary);
+}
+
+.settings-about summary {
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.settings-about ul {
+    margin: 0.4rem 0;
+    padding-left: 1.2rem;
+}
+
+.settings-about li {
+    margin-bottom: 0.3rem;
+    line-height: 1.5;
+}
+
+.settings-about a {
+    color: var(--accent);
+    text-decoration: none;
+}
+
+.settings-about a:hover {
+    text-decoration: underline;
 }
 
 /* --- Index / catalog --- */
