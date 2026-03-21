@@ -8,6 +8,13 @@ A minimal CBETA reader for Linux (CBreader doesn't support Linux).
 - Browsable index of the full bookcase and per-book table of contents
 - Nice, clean reading experience for classical Chinese Buddhist texts
 
+## Code Formatting
+
+After editing code, format with the appropriate tool:
+- Python: `ruff check --fix && ruff format`
+- JS/CSS: `prettier --write <files>`
+- Jinja2 templates: `djlint --reformat <files>`
+
 ## Architecture
 
 - Core Python library (no UI dependencies) for XML parsing, catalog, navigation
