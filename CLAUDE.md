@@ -8,6 +8,10 @@ A minimal CBETA reader for Linux (CBreader doesn't support Linux).
 - Browsable index of the full bookcase and per-book table of contents
 - Nice, clean reading experience for classical Chinese Buddhist texts
 
+## Development Environment
+
+Use the project venv (`.venv/bin/python3`) or activate it before running Python scripts.
+
 ## Code Formatting
 
 After editing code, format with the appropriate tool:
