@@ -213,7 +213,7 @@ def parse_xml(path: Path) -> ParsedText:
     for mulu in body.iter(f"{{{CB_NS}}}mulu"):
         level = mulu.get("level", "1")
         mulu_type = mulu.get("type", "")
-        text = mulu.text or ""
+        text = _text_content(mulu, char_map)
         if text:
             result.mulu.append({"level": level, "type": mulu_type, "text": text})
 
@@ -263,7 +263,7 @@ def _walk_body(
         return
     elif tag == "mulu":
         # Track mulu text so the next block element or <head> gets an anchor
-        text = el.text or ""
+        text = _text_content(el, char_map)
         if text:
             # Emit any unconsumed pending mulu before overwriting
             if state.get("pending_mulu"):
