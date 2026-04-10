@@ -32,6 +32,7 @@ function buildSettingsPanel() {
             <div class="settings-buttons">
                 <button class="theme-btn" id="vertical-btn" onclick="toggleVertical()">直排</button>
                 <button class="theme-btn" onclick="cycleTheme()">主題</button>
+                <button class="theme-btn" id="lookup-btn-settings" onclick="toggleLookupChar()">查字</button>
             </div>
             <details class="settings-about">
                 <summary>关于</summary>
@@ -66,6 +67,7 @@ function syncSettingsUI() {
       break;
     }
   }
+  syncLookupCharUI();
 }
 
 const FONT_FALLBACKS = '"Jigmo", serif';
@@ -145,6 +147,20 @@ function setWidth(val) {
 function setHeight(val) {
   localStorage.setItem("contentHeight", val);
   document.documentElement.style.setProperty("--content-height", val + "vh");
+}
+
+function toggleLookupChar() {
+  const on = localStorage.getItem("lookupChar") !== "false";
+  localStorage.setItem("lookupChar", !on);
+  document.getElementById("lookup-btn-settings").textContent = on
+    ? "查字：关"
+    : "查字：开";
+}
+
+function syncLookupCharUI() {
+  const on = localStorage.getItem("lookupChar") !== "false";
+  const btn = document.getElementById("lookup-btn-settings");
+  if (btn) btn.textContent = on ? "查字：开" : "查字：关";
 }
 
 function toggleVertical() {

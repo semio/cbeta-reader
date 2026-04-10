@@ -940,6 +940,34 @@ span.inline-note {
   font-size: 0.85rem;
 }
 
+/* --- Lookup button (查字) --- */
+.lookup-btn {
+  position: absolute;
+  z-index: 160;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--accent);
+  padding: 0.3rem 0.7rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  font-family: var(--font-ui);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+  writing-mode: horizontal-tb;
+  white-space: nowrap;
+  display: none;
+}
+
+.lookup-btn:hover {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+
+.lookup-btn.visible {
+  display: block;
+}
+
 /* --- Page break anchors --- */
 .pb {
   display: block;
